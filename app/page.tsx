@@ -40,16 +40,18 @@ export default function Home() {
       >
         <div style={{ display: "flex", alignItems: "baseline", gap: 18 }}>
           {/* ✦ Logo + Title */}
+          <span style={{ color: "var(--blue)", fontSize: "15px" }}>✦</span>
           <span
-            className="serif blue"
+            className="serif"
             style={{
-              fontSize: 28,
-              fontStyle: "italic",
-              fontWeight: 500,
+              fontSize: 24,
+              fontWeight: 400,
               letterSpacing: "-0.01em",
+              color: "var(--ink)",
             }}
           >
-            ✦ Incentive Intelligence
+            Incentive{" "}
+            <em style={{ fontStyle: "italic", color: "var(--blue)" }}>Intelligence</em>
           </span>
         </div>
 
@@ -126,7 +128,7 @@ export default function Home() {
               className="serif ink"
               style={{
                 fontSize: 26,
-                fontWeight: 500,
+                fontWeight: 400,
                 margin: "12px 0 8px",
                 letterSpacing: "-0.01em",
                 lineHeight: 1.25,
@@ -206,7 +208,7 @@ export default function Home() {
               className="serif ink"
               style={{
                 fontSize: 26,
-                fontWeight: 500,
+                fontWeight: 400,
                 margin: "12px 0 8px",
                 letterSpacing: "-0.01em",
                 lineHeight: 1.25,
@@ -299,7 +301,7 @@ export default function Home() {
               className="serif ink"
               style={{
                 fontSize: 20,
-                fontWeight: 500,
+                fontWeight: 400,
                 marginBottom: 10,
                 letterSpacing: "-0.01em",
               }}

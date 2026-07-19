@@ -39,21 +39,29 @@ export default function PlanningWorkbench() {
         }}
       >
         {/* Logo + tabs */}
-        <div style={{ display: "flex", alignItems: "center", gap: 32 }}>
+        <div style={{ display: "flex", alignItems: "baseline", gap: "32px" }}>
           {/* ✦ Logo */}
-          <Link
-            href="/"
-            style={{
-              fontSize: 22,
-              lineHeight: 1,
-              fontWeight: 700,
-              letterSpacing: "-0.02em",
-              color: "var(--ink)",
-              textDecoration: "none",
-            }}
-          >
-            ✦
-          </Link>
+          <div style={{ display: "flex", alignItems: "baseline", gap: "14px" }}>
+            <span style={{ color: "var(--blue)", fontSize: "15px" }}>✦</span>
+            <span
+              className="serif"
+              style={{
+                fontSize: "24px",
+                letterSpacing: "-0.01em",
+                color: "var(--ink)",
+                fontWeight: 400,
+              }}
+            >
+              Incentive{" "}
+              <em style={{ fontStyle: "italic", color: "var(--blue)" }}>Intelligence</em>
+            </span>
+            <span
+              className="label-caps"
+              style={{ fontSize: "11px", letterSpacing: "0.22em", marginBottom: 0 }}
+            >
+              Truck OEM · Deal Desk &amp; Planning
+            </span>
+          </div>
 
           {/* Tabs */}
           <nav style={{ display: "flex", gap: 8 }}>
@@ -72,17 +80,25 @@ export default function PlanningWorkbench() {
 
       {/* ── Title section ──────────────────────────────── */}
       <div style={{ marginBottom: 36 }}>
+        <div
+          className="label-caps"
+          style={{ marginBottom: "8px", color: "var(--blue)", letterSpacing: "0.22em" }}
+        >
+          Planning workbench · FY27 Q1 cycle
+        </div>
         <h1
           className="serif"
           style={{
             fontSize: "clamp(28px, 3.4vw, 40px)",
-            fontWeight: 500,
-            lineHeight: 1.2,
+            fontWeight: 400,
+            lineHeight: 1.05,
             color: "var(--ink)",
             margin: "0 0 8px",
           }}
         >
-          Where does each true dollar respond?
+          Where does each{" "}
+          <em style={{ fontStyle: "italic", color: "var(--blue)" }}>true dollar</em>{" "}
+          respond?
         </h1>
         <p
           className="slate"
@@ -211,10 +227,10 @@ export default function PlanningWorkbench() {
             <p
               className="serif"
               style={{
-                fontSize: 13,
+                fontSize: "14.5px",
                 fontStyle: "italic",
-                color: "var(--slate)",
-                lineHeight: 1.5,
+                color: "var(--blue)",
+                lineHeight: 1.45,
                 margin: 0,
               }}
             >
@@ -405,134 +421,60 @@ export default function PlanningWorkbench() {
 
         {/* Projected response panel — card-default */}
         <div className="card-default">
-          <div className="label-caps" style={{ marginBottom: 20 }}>
+          <div className="label-caps" style={{ marginBottom: "18px" }}>
             Projected response
           </div>
 
-          {/* KPI grid */}
+          {/* Big number */}
+          <div style={{ display: "flex", alignItems: "baseline", gap: "12px" }}>
+            <span
+              className="serif"
+              style={{
+                fontSize: "56px",
+                lineHeight: 1,
+                color: "var(--ink)",
+                fontWeight: 400,
+              }}
+            >
+              {proj.units.toLocaleString()}
+            </span>
+            <span style={{ fontSize: "13px", color: "var(--slate)" }}>
+              incremental units / yr
+            </span>
+          </div>
+
+          {/* Delta */}
           <div
             style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: 16,
-              marginBottom: 20,
+              marginTop: "10px",
+              fontSize: "14px",
+              color: proj.deltaColor,
+              fontWeight: 600,
             }}
           >
-            {/* Incremental units */}
-            <div>
-              <div
-                style={{
-                  fontSize: 12,
-                  color: "var(--slate)",
-                  marginBottom: 3,
-                }}
-              >
-                Incremental units/yr
-              </div>
-              <div
-                style={{
-                  fontSize: 22,
-                  fontWeight: 700,
-                  color: "var(--ink)",
-                  fontFamily: "monospace",
-                }}
-              >
-                {proj.units.toLocaleString()}
-              </div>
-            </div>
-
-            {/* Delta vs baseline */}
-            <div>
-              <div
-                style={{
-                  fontSize: 12,
-                  color: "var(--slate)",
-                  marginBottom: 3,
-                }}
-              >
-                Delta vs baseline
-              </div>
-              <div
-                style={{
-                  fontSize: 22,
-                  fontWeight: 700,
-                  color: proj.deltaColor,
-                  fontFamily: "monospace",
-                }}
-              >
-                {proj.deltaLabel}
-              </div>
-            </div>
-
-            {/* Cost per incremental unit */}
-            <div>
-              <div
-                style={{
-                  fontSize: 12,
-                  color: "var(--slate)",
-                  marginBottom: 3,
-                }}
-              >
-                Cost per incremental unit
-              </div>
-              <div
-                style={{
-                  fontSize: 22,
-                  fontWeight: 700,
-                  color: "var(--ink)",
-                  fontFamily: "monospace",
-                }}
-              >
-                {proj.costPerUnit}
-              </div>
-            </div>
-
-            {/* Baseline */}
-            <div>
-              <div
-                style={{
-                  fontSize: 12,
-                  color: "var(--slate)",
-                  marginBottom: 3,
-                }}
-              >
-                Baseline units/yr
-              </div>
-              <div
-                style={{
-                  fontSize: 22,
-                  fontWeight: 700,
-                  color: "var(--slate)",
-                  fontFamily: "monospace",
-                }}
-              >
-                {proj.baseline.toLocaleString()}
-              </div>
-            </div>
+            {proj.deltaLabel} vs. current allocation
           </div>
 
           {/* Secondary metrics */}
           <div
             style={{
+              marginTop: "22px",
               display: "flex",
-              gap: 24,
-              marginBottom: 18,
-              fontSize: 13,
+              flexDirection: "column",
+              gap: "10px",
             }}
           >
-            <div>
-              <span style={{ color: "var(--slate)", marginRight: 6 }}>
-                Rebate attainment
-              </span>
-              <span style={{ fontWeight: 600, color: "var(--blue)" }}>
-                {r}%
-              </span>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", fontSize: "13px" }}>
+              <span style={{ color: "var(--slate)" }}>Cost per incremental unit</span>
+              <span style={{ color: "var(--ink)", fontWeight: 600 }}>{proj.costPerUnit}</span>
             </div>
-            <div>
-              <span style={{ color: "var(--slate)", marginRight: 6 }}>
-                Margin-floor breaches
-              </span>
-              <span style={{ fontWeight: 600, color: "var(--green)" }}>0</span>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", fontSize: "13px" }}>
+              <span style={{ color: "var(--slate)" }}>Rebate attainment assumed</span>
+              <span style={{ color: "var(--ink)", fontWeight: 600 }}>78%</span>
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", fontSize: "13px" }}>
+              <span style={{ color: "var(--slate)" }}>Margin-floor breaches</span>
+              <span style={{ color: "var(--ink)", fontWeight: 600 }}>0</span>
             </div>
           </div>
 
@@ -540,13 +482,13 @@ export default function PlanningWorkbench() {
           <p
             className="serif"
             style={{
-              fontSize: 13,
+              fontSize: "15px",
               fontStyle: "italic",
-              color: "var(--slate)",
-              lineHeight: 1.6,
+              color: "var(--blue)",
+              lineHeight: 1.55,
               margin: 0,
-              paddingTop: 14,
-              borderTop: "1px solid var(--border-light)",
+              paddingTop: "20px",
+              marginTop: "auto",
             }}
           >
             {proj.scenarioInsight}
@@ -556,8 +498,8 @@ export default function PlanningWorkbench() {
 
       {/* ── Monitoring alerts ───────────────────────────── */}
       <section style={{ marginBottom: 32 }}>
-        <div className="label-caps" style={{ marginBottom: 14 }}>
-          Monitoring
+        <div className="label-caps" style={{ marginBottom: 16 }}>
+          Monitoring — plan vs. actual, refreshed monthly
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {alerts.map((a, i) => (
@@ -604,40 +546,20 @@ export default function PlanningWorkbench() {
       >
         <span
           style={{
-            fontSize: 18,
-            lineHeight: 1,
-            fontWeight: 700,
-            color: "var(--blue)",
-          }}
-        >
-          ✦
-        </span>
-        <div>
-          <div
-            style={{
-              fontWeight: 600,
-              fontSize: 13,
-              color: "var(--ink)",
-              marginBottom: 2,
-            }}
-          >
-            01 · Next Best Incentive
-          </div>
-          <div style={{ fontSize: 12.5, color: "var(--slate)", lineHeight: 1.45 }}>
-            View deal-level incentive recommendations with response-curve
-            reasoning, precedent, and counter-proposals.
-          </div>
-        </div>
-        <span
-          style={{
-            marginLeft: "auto",
             fontSize: 14,
+            lineHeight: 1,
             color: "var(--blue)",
-            fontWeight: 600,
           }}
         >
-          →
+          ◍
         </span>
+        <p style={{ margin: 0, fontSize: "13.5px", lineHeight: 1.6, color: "var(--slate)" }}>
+          This workbench decides{" "}
+          <em style={{ color: "var(--blue)", fontStyle: "normal" }}>what is on the menu</em>
+          .{" "}
+          <span style={{ color: "var(--blue)", fontWeight: 500 }}>Next Best Incentive</span>{" "}
+          decides what to serve on each deal — same data foundation, two moments of decision.
+        </p>
       </Link>
     </div>
   );

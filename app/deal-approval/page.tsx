@@ -52,26 +52,25 @@ export default function DealApprovalPage() {
       >
         <div style={{ display: "flex", alignItems: "center", gap: "32px" }}>
           {/* Logo + brand */}
-          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <span
-              style={{
-                fontSize: "20px",
-                color: "var(--blue)",
-                lineHeight: 1,
-              }}
-            >
-              ✦
-            </span>
+          <div style={{ display: "flex", alignItems: "baseline", gap: "14px" }}>
+            <span style={{ color: "var(--blue)", fontSize: "15px" }}>✦</span>
             <span
               className="serif"
               style={{
-                fontSize: "22px",
-                fontWeight: 500,
+                fontSize: "24px",
                 letterSpacing: "-0.01em",
                 color: "var(--ink)",
+                fontWeight: 400,
               }}
             >
-              Incentive Intelligence
+              Incentive{" "}
+              <em style={{ fontStyle: "italic", color: "var(--blue)" }}>Intelligence</em>
+            </span>
+            <span
+              className="label-caps"
+              style={{ fontSize: "11px", letterSpacing: "0.22em", marginBottom: 0 }}
+            >
+              Truck OEM · Deal Desk &amp; Planning
             </span>
           </div>
 
@@ -196,7 +195,7 @@ export default function DealApprovalPage() {
                 className="serif"
                 style={{
                   fontSize: "32px",
-                  fontWeight: 500,
+                  fontWeight: 400,
                   color: "var(--ink)",
                   letterSpacing: "-0.01em",
                   lineHeight: 1.2,
@@ -228,7 +227,7 @@ export default function DealApprovalPage() {
                 className="serif"
                 style={{
                   fontSize: "28px",
-                  fontWeight: 500,
+                  fontWeight: 400,
                   color: "var(--ink)",
                   marginTop: "2px",
                 }}
@@ -241,16 +240,27 @@ export default function DealApprovalPage() {
           {/* AI Recommendation Card (hero) */}
           <div className="card-hero animate-rise">
             <div style={{ marginBottom: "16px" }}>
-              <div className="label-caps" style={{ marginBottom: "4px" }}>
-                AI Recommendation
+              <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "4px" }}>
+                <span style={{ color: "var(--blue)", fontSize: "14px", lineHeight: 1 }}>✦</span>
+                <span className="label-caps" style={{ marginBottom: 0 }}>AI recommendation</span>
+                <span
+                  className="badge-verdict"
+                  style={{
+                    color: current.verdictColor,
+                    border: `1px solid ${current.verdictColor}`,
+                    background: "transparent",
+                  }}
+                >
+                  {current.verdictLong}
+                </span>
               </div>
               <div
                 className="serif"
                 style={{
                   fontSize: "30px",
-                  fontWeight: 500,
+                  fontWeight: 400,
                   color: "var(--ink)",
-                  lineHeight: 1.35,
+                  lineHeight: 1.25,
                 }}
               >
                 {current.recommendation}
@@ -273,10 +283,11 @@ export default function DealApprovalPage() {
 
             {/* Confidence */}
             <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "20px" }}>
-              <span className="label-caps">Confidence</span>
+              <span className="label-caps" style={{ marginBottom: 0 }}>Confidence</span>
               <span style={{ fontSize: "14px", fontWeight: 700, color: "var(--ink)" }}>
                 {current.confidence}
               </span>
+              <span style={{ fontSize: "12px", color: "var(--slate)" }}>· scored in 1.8s</span>
               <div
                 style={{
                   width: "100px",
@@ -304,7 +315,7 @@ export default function DealApprovalPage() {
                   Accept Recommendation
                 </button>
                 <button className="btn-secondary" onClick={handleOverride}>
-                  Override
+                  Override — approve as requested
                 </button>
               </div>
             ) : (
@@ -336,20 +347,20 @@ export default function DealApprovalPage() {
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: "10px", fontSize: "13px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ color: "var(--slate)" }}>Payment record</span>
+                  <span style={{ color: "var(--slate)" }}>Pays in</span>
                   <span style={{ fontWeight: 600, color: "var(--ink)" }}>{current.pays}</span>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ color: "var(--slate)" }}>Credit memos</span>
+                  <span style={{ color: "var(--slate)" }}>Credit memos, 12 mo</span>
                   <span style={{ fontWeight: 600, color: "var(--ink)" }}>{current.memos}</span>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ color: "var(--slate)" }}>Adjustments</span>
+                  <span style={{ color: "var(--slate)" }}>Post-sale adjustments</span>
                   <span style={{ fontWeight: 600, color: "var(--ink)" }}>{current.adjust}</span>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ color: "var(--slate)" }}>Last updated</span>
-                  <span style={{ fontWeight: 600, color: "var(--ink)" }}>{current.updated}</span>
+                  <span style={{ color: "var(--slate)" }}>Profile updated</span>
+                  <span style={{ fontWeight: 600, color: "var(--blue)" }}>{current.updated}</span>
                 </div>
               </div>
             </div>
@@ -363,7 +374,7 @@ export default function DealApprovalPage() {
                 className="serif"
                 style={{
                   fontSize: "26px",
-                  fontWeight: 500,
+                  fontWeight: 400,
                   color: "var(--ink)",
                   marginBottom: "6px",
                 }}
@@ -371,14 +382,15 @@ export default function DealApprovalPage() {
                 {current.similar}
               </div>
               <div style={{ fontSize: "12px", color: "var(--slate)", marginBottom: "10px" }}>
-                comparable deals
+                comparable deals in history
               </div>
               <div
+                className="serif"
                 style={{
                   fontSize: "13px",
+                  fontStyle: "italic",
                   color: "var(--blue)",
                   lineHeight: 1.5,
-                  fontWeight: 500,
                 }}
               >
                 {current.precedent}
@@ -402,13 +414,14 @@ export default function DealApprovalPage() {
                 <div
                   style={{
                     width: "100%",
-                    height: "6px",
-                    borderRadius: "3px",
-                    background: "var(--border-light)",
+                    height: "8px",
+                    borderRadius: "4px",
+                    background: "rgba(15,42,74,0.10)",
                     position: "relative",
+                    overflow: "visible",
                   }}
                 >
-                  {/* Green zone (below floor) */}
+                  {/* Floor zone */}
                   <div
                     style={{
                       position: "absolute",
@@ -416,22 +429,8 @@ export default function DealApprovalPage() {
                       top: 0,
                       width: `${floorNum}%`,
                       height: "100%",
-                      borderRadius: "3px 0 0 3px",
-                      background: "var(--green)",
-                      opacity: 0.3,
-                    }}
-                  />
-                  {/* Above-floor zone */}
-                  <div
-                    style={{
-                      position: "absolute",
-                      left: `${floorNum}%`,
-                      top: 0,
-                      width: `${100 - floorNum}%`,
-                      height: "100%",
-                      borderRadius: "0 3px 3px 0",
-                      background: "var(--amber)",
-                      opacity: 0.25,
+                      borderRadius: "4px 0 0 4px",
+                      background: "rgba(15,42,74,0.12)",
                     }}
                   />
                 </div>
@@ -443,8 +442,8 @@ export default function DealApprovalPage() {
                     left: `${floorNum}%`,
                     top: "-4px",
                     width: "2px",
-                    height: "14px",
-                    background: "var(--amber)",
+                    height: "16px",
+                    background: "var(--blue)",
                     borderRadius: "1px",
                   }}
                 />
@@ -454,13 +453,12 @@ export default function DealApprovalPage() {
                   style={{
                     position: "absolute",
                     left: `${recNum}%`,
-                    top: "-5px",
-                    width: "16px",
-                    height: "16px",
+                    top: "-3px",
+                    width: "14px",
+                    height: "14px",
                     borderRadius: "50%",
-                    background: "var(--blue)",
-                    border: "2px solid #ffffff",
-                    boxShadow: "0 2px 8px rgba(29,91,191,0.35)",
+                    background: "linear-gradient(135deg, #2563c9, #174a9c)",
+                    boxShadow: "0 0 10px rgba(29,91,191,0.4)",
                     transform: "translateX(-50%)",
                   }}
                 />
@@ -471,13 +469,15 @@ export default function DealApprovalPage() {
                 style={{
                   display: "flex",
                   justifyContent: "space-between",
-                  fontSize: "11px",
-                  fontWeight: 600,
-                  letterSpacing: "0.04em",
+                  fontSize: "12px",
+                  color: "var(--slate)",
+                  marginTop: "16px",
                 }}
               >
-                <span style={{ color: "var(--green)" }}>Floor {current.floorPct}</span>
-                <span style={{ color: "var(--blue)" }}>Rec {current.recPct}</span>
+                <span>Floor {current.floor} · At rec. <strong style={{ color: "var(--blue)", fontWeight: 600 }}>{current.marginAtRec}</strong></span>
+              </div>
+              <div style={{ marginTop: "16px", fontSize: "13px", lineHeight: 1.6, color: "var(--slate)" }}>
+                Every recommendation respects the unit-cost margin floor for this configuration.
               </div>
             </div>
           </div>
@@ -486,33 +486,12 @@ export default function DealApprovalPage() {
           <Link href="/planning" style={{ textDecoration: "none", display: "block" }}>
             <div className="callout-crosslink">
               <div style={{ flex: 1 }}>
-                <div
-                  style={{
-                    fontSize: "13px",
-                    fontWeight: 600,
-                    color: "var(--ink)",
-                    marginBottom: "4px",
-                  }}
-                >
-                  See how this deal&apos;s segment responds across incentive types →
-                </div>
-                <div style={{ fontSize: "12px", color: "var(--slate)" }}>
-                  Open Incentive Mix by Segment to explore response curves and budget allocation for the{" "}
-                  {current.segment.toLowerCase()} segment.
-                </div>
+                <p style={{ margin: 0, fontSize: "13.5px", lineHeight: 1.6, color: "var(--slate)" }}>
+                  The menu of incentive forms offered here comes from{" "}
+                  <span style={{ color: "var(--blue)", fontWeight: 500 }}>Incentive Mix by Segment</span>{" "}
+                  — every decision made on this screen feeds back into both models.
+                </p>
               </div>
-              <span
-                style={{
-                  fontSize: "11px",
-                  fontWeight: 600,
-                  letterSpacing: "0.12em",
-                  textTransform: "uppercase",
-                  color: "var(--blue)",
-                  flexShrink: 0,
-                }}
-              >
-                UC2
-              </span>
             </div>
           </Link>
         </div>
