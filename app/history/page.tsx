@@ -1,121 +1,107 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { mockHistory } from "@/lib/mock-data";
-import { CheckCircle2, XCircle, TrendingUp, AlertTriangle, Clock } from "lucide-react";
+import Link from "next/link";
 
-const outcomeStyles = {
-  "Won": "text-emerald-400 bg-emerald-500/10",
-  "Lost": "text-rose-400 bg-rose-500/10",
-};
+const history = [
+  { id: "H-1042", deal: "D-4817", customer: "Bluegrass Haulage", action: "Accepted", rec: "Approve as asked", outcome: "Won", outcomeColor: "#0e7a5f", user: "Deal Desk", time: "Jul 19, 09:23" },
+  { id: "H-1041", deal: "D-4823", customer: "Keystone Site Works", action: "Accepted", rec: "Offer discount instead", outcome: "Won", outcomeColor: "#0e7a5f", user: "Deal Desk", time: "Jul 19, 08:45" },
+  { id: "H-1040", deal: "D-4819", customer: "Pioneer Freight Lines", action: "Overridden", rec: "Counter at 6.5%", outcome: "Lost", outcomeColor: "#b45309", user: "VP Sales", time: "Jul 18, 19:40" },
+  { id: "H-1039", deal: "D-4815", customer: "Cascade Regional Freight", action: "Accepted", rec: "Counter at 6.5%", outcome: "Won at 6.8%", outcomeColor: "#0e7a5f", user: "Deal Desk", time: "Jul 18, 14:55" },
+  { id: "H-1038", deal: "D-4821", customer: "Bhatt & Sons Logistics", action: "Accepted", rec: "Offer financing instead", outcome: "Won", outcomeColor: "#0e7a5f", user: "Deal Desk", time: "Jul 18, 10:20" },
+  { id: "H-1037", deal: "D-4813", customer: "Atlas National Lines", action: "Accepted", rec: "Approve as asked", outcome: "Won", outcomeColor: "#0e7a5f", user: "Deal Desk", time: "Jul 17, 16:30" },
+  { id: "H-1036", deal: "D-4820", customer: "Sandhill Express", action: "Overridden", rec: "Offer financing instead", outcome: "Won", outcomeColor: "#0e7a5f", user: "VP Sales", time: "Jul 17, 11:10" },
+  { id: "H-1035", deal: "D-4818", customer: "Lakeshore Transport", action: "Accepted", rec: "Approve as asked", outcome: "Won", outcomeColor: "#0e7a5f", user: "Deal Desk", time: "Jul 16, 15:45" },
+];
 
 export default function HistoryPage() {
+  const accepted = history.filter(h => h.action === "Accepted").length;
+  const won = history.filter(h => h.outcome.startsWith("Won")).length;
+
   return (
-    <div className="max-w-6xl mx-auto">
-      <div className="mb-10">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-slate-500/10 text-slate-400 rounded-full text-xs font-medium mb-4 tracking-wide">
-          <Clock className="w-3.5 h-3.5" /> DECISION LOG
+    <div className="animate-rise" style={{ maxWidth: "var(--max-width)", margin: "0 auto", padding: "34px var(--gutter) 60px" }}>
+      {/* Header */}
+      <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid var(--border-light)", paddingBottom: "22px", marginBottom: "34px" }}>
+        <div style={{ display: "flex", alignItems: "baseline", gap: "14px" }}>
+          <span style={{ color: "var(--blue)", fontSize: "15px" }}>✦</span>
+          <span className="serif" style={{ fontSize: "24px", letterSpacing: "-.01em" }}>
+            Incentive <em style={{ fontStyle: "italic", color: "var(--blue)" }}>Intelligence</em>
+          </span>
+          <span className="label-caps" style={{ fontSize: "11px", letterSpacing: ".22em" }}>Truck OEM · Decision Log</span>
         </div>
-        <h1 className="text-4xl font-bold tracking-tight">History & Feedback</h1>
-        <p className="text-muted-foreground text-lg mt-1">Every AI recommendation, decision, and outcome — feeding the learning loop</p>
-      </div>
+        <nav style={{ display: "flex", gap: "6px" }}>
+          <Link href="/deal-approval" className="tab-inactive" style={{ textDecoration: "none" }}>01 · Next Best Incentive</Link>
+          <Link href="/planning" className="tab-inactive" style={{ textDecoration: "none" }}>02 · Incentive Mix by Segment</Link>
+        </nav>
+      </header>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-4 gap-4 mb-10">
-        <Card className="bg-emerald-500/5 border-emerald-500/20">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-emerald-400 flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4" /> Win Rate (AI Followed)
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-emerald-400">84%</div>
-          </CardContent>
-        </Card>
-        <Card className="bg-rose-500/5 border-rose-500/20">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-rose-400 flex items-center gap-2">
-              <XCircle className="w-4 h-4" /> Win Rate (Overridden)
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-rose-400">61%</div>
-          </CardContent>
-        </Card>
-        <Card className="bg-violet-500/5 border-violet-500/20">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-violet-400 flex items-center gap-2">
-              <TrendingUp className="w-4 h-4" /> Acceptance Rate
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-violet-400">78%</div>
-          </CardContent>
-        </Card>
-        <Card className="bg-amber-500/5 border-amber-500/20">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-amber-400 flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4" /> Decisions Logged
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-amber-400">{mockHistory.length}</div>
-          </CardContent>
-        </Card>
-      </div>
+      <h1 className="serif" style={{ fontSize: "40px", fontWeight: 400, margin: "0 0 6px", lineHeight: 1.05 }}>
+        Decision <em style={{ fontStyle: "italic", color: "var(--blue)" }}>history</em>
+      </h1>
+      <p style={{ fontSize: "14px", color: "var(--slate)", margin: "0 0 28px" }}>
+        Every accept, override, win, and loss feeds back into the model.
+      </p>
 
-      {/* History Table */}
-      <Card>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border text-left text-xs uppercase tracking-wider text-muted-foreground">
-                  <th className="py-4 px-6">ID</th>
-                  <th className="py-4 px-6">Deal</th>
-                  <th className="py-4 px-6">Customer</th>
-                  <th className="py-4 px-6">Action</th>
-                  <th className="py-4 px-6">AI Recommendation</th>
-                  <th className="py-4 px-6">Outcome</th>
-                  <th className="py-4 px-6">User</th>
-                  <th className="py-4 px-6 text-right">Timestamp</th>
-                </tr>
-              </thead>
-              <tbody>
-                {mockHistory.map((entry) => {
-                  const isWon = entry.outcome.startsWith("Won");
-                  return (
-                    <tr key={entry.id} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
-                      <td className="py-4 px-6 font-mono text-xs text-muted-foreground">{entry.id}</td>
-                      <td className="py-4 px-6 font-mono text-xs">{entry.dealId}</td>
-                      <td className="py-4 px-6 font-medium">{entry.customer}</td>
-                      <td className="py-4 px-6">
-                        <Badge variant="outline" className="text-xs">{entry.action}</Badge>
-                      </td>
-                      <td className="py-4 px-6 text-muted-foreground">{entry.recommendation}</td>
-                      <td className="py-4 px-6">
-                        <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium ${outcomeStyles[isWon ? "Won" : "Lost"]}`}>
-                          {isWon ? <CheckCircle2 className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
-                          {entry.outcome}
-                        </span>
-                      </td>
-                      <td className="py-4 px-6 text-muted-foreground text-xs">{entry.user}</td>
-                      <td className="py-4 px-6 text-right font-mono text-xs text-muted-foreground">
-                        {new Date(entry.timestamp).toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+      {/* Stats */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: "14px", marginBottom: "28px" }}>
+        <div className="card-default">
+          <div className="label-caps" style={{ marginBottom: "6px" }}>AI recommendations accepted</div>
+          <div style={{ fontFamily: "'Newsreader', serif", fontSize: "42px", lineHeight: 1, color: "var(--green)" }}>{accepted}/{history.length}</div>
+        </div>
+        <div className="card-default">
+          <div className="label-caps" style={{ marginBottom: "6px" }}>Win rate when AI followed</div>
+          <div style={{ fontFamily: "'Newsreader', serif", fontSize: "42px", lineHeight: 1, color: "var(--green)" }}>
+            {Math.round((won / history.length) * 100)}%
           </div>
-        </CardContent>
-      </Card>
+        </div>
+        <div className="card-default">
+          <div className="label-caps" style={{ marginBottom: "6px" }}>Feedback loop</div>
+          <div style={{ fontSize: "13.5px", lineHeight: 1.6, color: "var(--blue)" }}>
+            All {history.length} decisions logged. The model learns from every outcome — including the overrides.
+          </div>
+        </div>
+      </div>
 
-      <div className="mt-6 p-4 bg-violet-500/5 border border-violet-500/20 rounded-xl text-sm text-center">
-        <span className="text-violet-400 font-medium">Closed-loop learning active:</span>
-        <span className="text-muted-foreground"> Every accepted, overridden, won, and lost outcome feeds back into the model for continuous improvement.</span>
+      {/* Table */}
+      <div className="card-default" style={{ padding: 0, overflow: "hidden" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
+          <thead>
+            <tr style={{ borderBottom: "1px solid var(--border-light)" }}>
+              {["ID", "Deal", "Customer", "Action", "AI recommendation", "Outcome", "User", "Time"].map(h => (
+                <th key={h} className="label-caps" style={{ padding: "14px 18px", textAlign: "left", fontSize: "11px" }}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {history.map(h => (
+              <tr key={h.id} style={{ borderBottom: "1px solid var(--border-light)" }}>
+                <td style={{ padding: "14px 18px", fontFamily: "ui-monospace, Menlo, monospace", fontSize: "11px", color: "var(--slate)" }}>{h.id}</td>
+                <td style={{ padding: "14px 18px", fontFamily: "ui-monospace, Menlo, monospace", fontSize: "12px" }}>{h.deal}</td>
+                <td style={{ padding: "14px 18px", fontWeight: 500 }}>{h.customer}</td>
+                <td style={{ padding: "14px 18px" }}>
+                  <span style={{
+                    fontSize: "10.5px", fontWeight: 600, letterSpacing: ".12em", textTransform: "uppercase",
+                    padding: "3px 8px", borderRadius: "var(--radius-sm)",
+                    border: `1px solid ${h.action === "Accepted" ? "var(--green)" : "var(--amber)"}`,
+                    color: h.action === "Accepted" ? "var(--green)" : "var(--amber)",
+                  }}>
+                    {h.action}
+                  </span>
+                </td>
+                <td style={{ padding: "14px 18px", color: "var(--slate)", fontSize: "12.5px" }}>{h.rec}</td>
+                <td style={{ padding: "14px 18px", fontWeight: 600, color: h.outcomeColor }}>{h.outcome}</td>
+                <td style={{ padding: "14px 18px", color: "var(--slate)", fontSize: "12px" }}>{h.user}</td>
+                <td style={{ padding: "14px 18px", color: "var(--slate)", fontSize: "12px" }}>{h.time}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="callout-crosslink" style={{ marginTop: "24px" }}>
+        <span style={{ color: "var(--blue)" }}>◍</span>
+        <p style={{ margin: 0, fontSize: "13.5px", lineHeight: 1.6, color: "var(--slate)" }}>
+          Every decision logged here updates the scoring models behind <Link href="/deal-approval" style={{ fontWeight: 600 }}>Next Best Incentive</Link> and the response curves in <Link href="/planning" style={{ fontWeight: 600 }}>Incentive Mix by Segment</Link>.
+        </p>
       </div>
     </div>
   );

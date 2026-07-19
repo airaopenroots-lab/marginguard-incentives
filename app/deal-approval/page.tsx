@@ -1,225 +1,525 @@
 "use client";
 
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { mockDeals } from "@/lib/mock-data";
-import { CheckCircle2, XCircle, ArrowRight, AlertTriangle, Brain, Shield, TrendingUp, Clock, User, MapPin, Truck } from "lucide-react";
+import { useState, useMemo } from "react";
+import { generateDeals, type Deal } from "@/lib/seed-engine";
+import Link from "next/link";
+
+const VERDICT_LABELS: Record<string, string> = {
+  APPROVE: "APPROVE",
+  COUNTER: "COUNTER",
+  ALTERNATIVE: "ALTERNATIVE",
+};
 
 export default function DealApprovalPage() {
-  const [deals, setDeals] = useState(mockDeals);
+  const [seed, setSeed] = useState(42);
   const [selectedIdx, setSelectedIdx] = useState(0);
+  const [decidedIds, setDecidedIds] = useState<Set<string>>(new Set());
 
+  const deals = useMemo(() => generateDeals(seed), [seed]);
   const current = deals[selectedIdx];
-  const pendingCount = deals.filter(d => d.status === "pending").length;
+  const isDecided = decidedIds.has(current?.id ?? "");
 
-  const handleAction = (action: "approved" | "countered" | "rejected") => {
-    const updated = [...deals];
-    updated[selectedIdx] = { ...updated[selectedIdx], status: action };
-    setDeals(updated);
+  const handleReseed = () => {
+    const newSeed = Math.floor(Math.random() * 100000);
+    setSeed(newSeed);
+    setSelectedIdx(0);
+    setDecidedIds(new Set());
   };
 
-  return (
-    <div className="max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="flex justify-between items-end mb-10">
-        <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-500/10 text-blue-400 rounded-full text-xs font-medium mb-4 tracking-wide">
-            <Brain className="w-3.5 h-3.5" /> NEXT BEST INCENTIVE
-          </div>
-          <h1 className="text-4xl font-bold tracking-tight">Deal Approval</h1>
-          <p className="text-muted-foreground text-lg mt-1">Real-time AI recommendations at the point of decision</p>
-        </div>
-        <Badge className="bg-blue-500/10 text-blue-400 border-blue-500/20 text-sm px-4 py-2" variant="outline">
-          {pendingCount} deal{pendingCount !== 1 ? "s" : ""} requiring decision
-        </Badge>
-      </div>
+  const handleAccept = () => {
+    setDecidedIds((prev) => new Set(prev).add(current.id));
+  };
 
-      <div className="grid grid-cols-12 gap-8">
-        {/* Deal Queue */}
-        <div className="col-span-4 space-y-3">
-          <div className="text-xs uppercase tracking-widest text-muted-foreground mb-2 px-1">Deal Queue</div>
+  const handleOverride = () => {
+    setDecidedIds((prev) => new Set(prev).add(current.id));
+  };
+
+  const floorNum = parseFloat(current.floorPct ?? "0");
+  const recNum = parseFloat(current.recPct ?? "0");
+
+  return (
+    <div style={{ maxWidth: "var(--max-width)", margin: "0 auto", padding: "0 var(--gutter)" }}>
+      {/* ── TOP HEADER BAR ─────────────────────────────────── */}
+      <header
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "24px 0 28px 0",
+          borderBottom: "1px solid var(--border-light)",
+          marginBottom: "28px",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "32px" }}>
+          {/* Logo + brand */}
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <span
+              style={{
+                fontSize: "20px",
+                color: "var(--blue)",
+                lineHeight: 1,
+              }}
+            >
+              ✦
+            </span>
+            <span
+              className="serif"
+              style={{
+                fontSize: "22px",
+                fontWeight: 500,
+                letterSpacing: "-0.01em",
+                color: "var(--ink)",
+              }}
+            >
+              Incentive Intelligence
+            </span>
+          </div>
+
+          {/* Tabs */}
+          <div style={{ display: "flex", gap: "8px" }}>
+            <button className="tab-active" style={{ cursor: "default" }}>
+              01 · Next Best Incentive
+            </button>
+            <Link href="/planning">
+              <button className="tab-inactive">02 · Incentive Mix by Segment</button>
+            </Link>
+          </div>
+        </div>
+
+        {/* Reseed button */}
+        <button
+          onClick={handleReseed}
+          className="btn-secondary"
+          style={{ padding: "10px 18px", fontSize: "11px", letterSpacing: "0.12em" }}
+        >
+          Reseed
+        </button>
+      </header>
+
+      {/* ── MAIN GRID: SIDEBAR + CONTENT ──────────────────── */}
+      <div style={{ display: "grid", gridTemplateColumns: "320px 1fr", gap: "36px" }}>
+        {/* ── LEFT SIDEBAR: Approval Queue ─────────────────── */}
+        <aside style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+          <div className="label-caps" style={{ padding: "0 4px", marginBottom: "2px" }}>
+            Approval Queue
+          </div>
+
           {deals.map((deal, idx) => {
-            const isSelected = selectedIdx === idx;
-            const isResolved = deal.status !== "pending";
+            const active = selectedIdx === idx;
+            const done = decidedIds.has(deal.id);
             return (
-              <Card
+              <div
                 key={deal.id}
-                className={`cursor-pointer transition-all ${
-                  isSelected
-                    ? "ring-2 ring-blue-500 border-blue-500/40 shadow-lg shadow-blue-500/5"
-                    : "hover:border-blue-500/20 hover:shadow-md"
-                } ${isResolved ? "opacity-60" : ""}`}
                 onClick={() => setSelectedIdx(idx)}
+                className={active ? "card-default card-selected" : "card-default"}
+                style={{
+                  cursor: "pointer",
+                  opacity: done ? 0.55 : 1,
+                  transition: "all 0.2s",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "10px",
+                }}
               >
-                <CardContent className="p-4">
-                  <div className="flex justify-between items-start mb-2">
-                    <div className="font-semibold">{deal.customer}</div>
-                    <div className="flex items-center gap-2">
-                      {isResolved && (
-                        <Badge variant="outline" className="text-xs">
-                          {deal.status === "approved" ? "✓ Accepted" : deal.status === "countered" ? "⟳ Countered" : "✗ Rejected"}
-                        </Badge>
-                      )}
-                      <span className="font-mono text-xs text-muted-foreground">{deal.id}</span>
-                    </div>
+                {/* Top row: customer + verdict badge */}
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "flex-start",
+                    gap: "8px",
+                  }}
+                >
+                  <div style={{ fontWeight: 600, fontSize: "14px", lineHeight: 1.3 }}>
+                    {deal.customer}
                   </div>
-                  <div className="text-xs text-muted-foreground space-y-1">
-                    <div className="flex justify-between">
-                      <span>{deal.config}</span>
-                      <span className="font-mono">${deal.amount.toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>{deal.segment} • {deal.region}</span>
-                      <span className={`font-medium ${deal.marginImpact < -15 ? "text-rose-400" : "text-amber-400"}`}>
-                        {deal.marginImpact}% margin
-                      </span>
-                    </div>
-                    <div className="flex justify-between pt-1 border-t border-border/50">
-                      <span className="text-muted-foreground">Requested:</span>
-                      <span className="font-medium">{deal.requestedAmount} ({deal.requestedIncentive})</span>
-                    </div>
+                  <span
+                    className="badge-verdict"
+                    style={{
+                      background:
+                        deal.verdict === "APPROVE"
+                          ? "rgba(14,122,95,0.1)"
+                          : deal.verdict === "COUNTER"
+                            ? "rgba(29,91,191,0.1)"
+                            : "rgba(100,116,139,0.1)",
+                      color: deal.verdictColor,
+                      border: `1px solid ${deal.verdictColor}33`,
+                      flexShrink: 0,
+                    }}
+                  >
+                    {VERDICT_LABELS[deal.verdict] ?? deal.verdict}
+                  </span>
+                </div>
+
+                {/* Config + requested */}
+                <div style={{ fontSize: "12px", color: "var(--slate)", lineHeight: 1.5 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between" }}>
+                    <span>{deal.config}</span>
+                    <span style={{ fontWeight: 500, color: "var(--ink)" }}>
+                      {deal.requested}
+                    </span>
                   </div>
-                </CardContent>
-              </Card>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginTop: "2px" }}>
+                    <span>
+                      {deal.segment} · {deal.age}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Decided indicator */}
+                {done && (
+                  <div
+                    style={{
+                      fontSize: "11px",
+                      fontWeight: 600,
+                      color: deal.verdictColor,
+                      letterSpacing: "0.06em",
+                    }}
+                  >
+                    Decided →
+                  </div>
+                )}
+              </div>
             );
           })}
-        </div>
+        </aside>
 
-        {/* Detail + AI Panel */}
-        <div className="col-span-8 space-y-6">
-          {/* Deal Detail Card */}
-          <Card>
-            <CardContent className="p-6">
-              <div className="grid grid-cols-4 gap-6 text-sm">
-                <div>
-                  <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Customer</div>
-                  <div className="font-semibold">{current.customer}</div>
-                  <div className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
-                    <MapPin className="w-3 h-3" /> {current.region}
-                  </div>
+        {/* ── RIGHT CONTENT ────────────────────────────────── */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "22px" }}>
+          {/* Deal Header */}
+          <div
+            className="card-default"
+            style={{ padding: "24px 28px", display: "flex", justifyContent: "space-between", alignItems: "center" }}
+          >
+            <div>
+              <div
+                className="serif"
+                style={{
+                  fontSize: "32px",
+                  fontWeight: 500,
+                  color: "var(--ink)",
+                  letterSpacing: "-0.01em",
+                  lineHeight: 1.2,
+                }}
+              >
+                {current.customer}
+              </div>
+              <div
+                style={{
+                  fontSize: "14px",
+                  color: "var(--slate)",
+                  marginTop: "6px",
+                  display: "flex",
+                  gap: "18px",
+                }}
+              >
+                <span>{current.config}</span>
+                <span style={{ color: "var(--border-medium)" }}>·</span>
+                <span>
+                  {current.segment} · {current.age}
+                </span>
+              </div>
+            </div>
+            <div style={{ textAlign: "right" }}>
+              <div style={{ fontSize: "11px", fontWeight: 600, letterSpacing: "0.16em", textTransform: "uppercase", color: "var(--slate)" }}>
+                Requested
+              </div>
+              <div
+                className="serif"
+                style={{
+                  fontSize: "28px",
+                  fontWeight: 500,
+                  color: "var(--ink)",
+                  marginTop: "2px",
+                }}
+              >
+                {current.requested}
+              </div>
+            </div>
+          </div>
+
+          {/* AI Recommendation Card (hero) */}
+          <div className="card-hero animate-rise">
+            <div style={{ marginBottom: "16px" }}>
+              <div className="label-caps" style={{ marginBottom: "4px" }}>
+                AI Recommendation
+              </div>
+              <div
+                className="serif"
+                style={{
+                  fontSize: "30px",
+                  fontWeight: 500,
+                  color: "var(--ink)",
+                  lineHeight: 1.35,
+                }}
+              >
+                {current.recommendation}
+              </div>
+            </div>
+
+            <div
+              className="serif"
+              style={{
+                fontSize: "17px",
+                fontStyle: "italic",
+                fontWeight: 400,
+                color: "var(--blue)",
+                lineHeight: 1.6,
+                marginBottom: "20px",
+              }}
+            >
+              {current.reason}
+            </div>
+
+            {/* Confidence */}
+            <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "20px" }}>
+              <span className="label-caps">Confidence</span>
+              <span style={{ fontSize: "14px", fontWeight: 700, color: "var(--ink)" }}>
+                {current.confidence}
+              </span>
+              <div
+                style={{
+                  width: "100px",
+                  height: "4px",
+                  borderRadius: "2px",
+                  background: "var(--border-light)",
+                  overflow: "hidden",
+                }}
+              >
+                <div
+                  style={{
+                    width: current.confidence,
+                    height: "100%",
+                    borderRadius: "2px",
+                    background: "var(--blue)",
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Action buttons */}
+            {!isDecided ? (
+              <div style={{ display: "flex", gap: "12px" }}>
+                <button className="btn-primary" onClick={handleAccept}>
+                  Accept Recommendation
+                </button>
+                <button className="btn-secondary" onClick={handleOverride}>
+                  Override
+                </button>
+              </div>
+            ) : (
+              <div
+                style={{
+                  padding: "12px 18px",
+                  borderRadius: "var(--radius-md)",
+                  background: "var(--wash-green)",
+                  border: "1px solid rgba(14,122,95,0.2)",
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  color: "var(--green)",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                }}
+              >
+                <span>✓</span> Decision recorded — this deal has been processed.
+              </div>
+            )}
+          </div>
+
+          {/* ── THREE INFO CARDS ────────────────────────────── */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "16px" }}>
+            {/* Customer Behavior Panel */}
+            <div className="card-default" style={{ padding: "20px 22px" }}>
+              <div className="label-caps" style={{ marginBottom: "14px" }}>
+                Customer Behavior
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px", fontSize: "13px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ color: "var(--slate)" }}>Payment record</span>
+                  <span style={{ fontWeight: 600, color: "var(--ink)" }}>{current.pays}</span>
                 </div>
-                <div>
-                  <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Configuration</div>
-                  <div className="font-semibold flex items-center gap-1.5">
-                    <Truck className="w-3.5 h-3.5 text-muted-foreground" /> {current.config}
-                  </div>
-                  <div className="text-xs text-muted-foreground mt-0.5">{current.segment} Segment</div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ color: "var(--slate)" }}>Credit memos</span>
+                  <span style={{ fontWeight: 600, color: "var(--ink)" }}>{current.memos}</span>
                 </div>
-                <div>
-                  <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Payment Score</div>
-                  <div className="font-semibold">
-                    <span className={current.paymentScore < 50 ? "text-rose-400" : current.paymentScore < 70 ? "text-amber-400" : "text-emerald-400"}>
-                      {current.paymentScore}/100
-                    </span>
-                  </div>
-                  <div className="text-xs text-muted-foreground mt-0.5">AR History</div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ color: "var(--slate)" }}>Adjustments</span>
+                  <span style={{ fontWeight: 600, color: "var(--ink)" }}>{current.adjust}</span>
                 </div>
-                <div>
-                  <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Submitted</div>
-                  <div className="font-semibold flex items-center gap-1">
-                    <Clock className="w-3.5 h-3.5" />
-                    {new Date(current.submittedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                  </div>
-                  <div className="text-xs text-muted-foreground mt-0.5">
-                    {new Date(current.submittedAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}
-                  </div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ color: "var(--slate)" }}>Last updated</span>
+                  <span style={{ fontWeight: 600, color: "var(--ink)" }}>{current.updated}</span>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
 
-          {/* AI Recommendation */}
-          <Card className="border-blue-500/30 bg-gradient-to-br from-blue-500/5 to-violet-500/5">
-            <CardHeader className="border-b border-blue-500/10 pb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-11 h-11 bg-gradient-to-br from-blue-500 to-violet-600 rounded-2xl flex items-center justify-center shadow-lg shadow-violet-500/20">
-                  <Brain className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <CardTitle className="text-xl">AI Recommendation</CardTitle>
-                  <div className="flex items-center gap-2 text-sm mt-0.5">
-                    <span className="text-muted-foreground">Confidence:</span>
-                    <span className={`font-mono font-bold ${current.confidence >= 90 ? "text-emerald-400" : current.confidence >= 80 ? "text-amber-400" : "text-rose-400"}`}>
-                      {current.confidence}%
-                    </span>
-                    <div className="w-16 h-1.5 bg-muted rounded-full overflow-hidden">
-                      <div
-                        className={`h-full rounded-full transition-all ${
-                          current.confidence >= 90 ? "bg-emerald-500" : current.confidence >= 80 ? "bg-amber-500" : "bg-rose-500"
-                        }`}
-                        style={{ width: `${current.confidence}%` }}
-                      />
-                    </div>
-                  </div>
-                </div>
+            {/* Precedent Panel */}
+            <div className="card-default" style={{ padding: "20px 22px" }}>
+              <div className="label-caps" style={{ marginBottom: "14px" }}>
+                Precedent
               </div>
-            </CardHeader>
-
-            <CardContent className="pt-6 space-y-6">
-              {/* Recommended Action */}
-              <div className="bg-blue-500/10 border border-blue-500/20 rounded-2xl p-6">
-                <div className="text-xs uppercase tracking-widest text-blue-400 mb-2">Recommended Action</div>
-                <div className="text-3xl font-bold text-blue-400">{current.aiRecommendation}</div>
+              <div
+                className="serif"
+                style={{
+                  fontSize: "26px",
+                  fontWeight: 500,
+                  color: "var(--ink)",
+                  marginBottom: "6px",
+                }}
+              >
+                {current.similar}
               </div>
+              <div style={{ fontSize: "12px", color: "var(--slate)", marginBottom: "10px" }}>
+                comparable deals
+              </div>
+              <div
+                style={{
+                  fontSize: "13px",
+                  color: "var(--blue)",
+                  lineHeight: 1.5,
+                  fontWeight: 500,
+                }}
+              >
+                {current.precedent}
+              </div>
+            </div>
 
-              {/* Justification */}
-              <div className="flex items-start gap-4 bg-muted/30 p-5 rounded-2xl border border-border">
-                <AlertTriangle className="w-5 h-5 text-amber-400 mt-0.5 shrink-0" />
-                <div>
-                  <div className="text-sm font-medium mb-1">Why this recommendation</div>
-                  <p className="text-sm leading-relaxed text-muted-foreground">{current.reason}</p>
-                </div>
+            {/* Margin Floor Gauge */}
+            <div className="card-default" style={{ padding: "20px 22px" }}>
+              <div className="label-caps" style={{ marginBottom: "14px" }}>
+                Margin Floor
               </div>
 
-              {/* Alternative */}
-              {current.alternative && (
-                <div>
-                  <div className="text-xs uppercase tracking-widest text-muted-foreground mb-3">Alternative Incentive Strategy</div>
-                  <div className="p-5 border border-dashed border-violet-500/30 rounded-2xl bg-violet-500/5">
-                    <div className="flex items-center gap-2 text-violet-400 text-sm font-medium">
-                      <TrendingUp className="w-4 h-4" /> {current.alternative}
-                    </div>
-                  </div>
-                </div>
-              )}
+              <div style={{ fontSize: "13px", color: "var(--slate)", marginBottom: "12px" }}>
+                Floor <span style={{ fontWeight: 600, color: "var(--ink)" }}>{current.floor}</span> · margin at
+                rec <span style={{ fontWeight: 600, color: "var(--ink)" }}>{current.marginAtRec}</span>
+              </div>
 
-              {/* Action Buttons */}
-              <div className="flex gap-4 pt-4 border-t border-border">
-                <Button
-                  onClick={() => handleAction("approved")}
-                  size="lg"
-                  className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-medium shadow-lg shadow-emerald-500/20"
+              {/* Visual gauge bar */}
+              <div style={{ position: "relative", marginBottom: "10px" }}>
+                {/* Track */}
+                <div
+                  style={{
+                    width: "100%",
+                    height: "6px",
+                    borderRadius: "3px",
+                    background: "var(--border-light)",
+                    position: "relative",
+                  }}
                 >
-                  <CheckCircle2 className="mr-2 w-5 h-5" /> Accept Recommendation
-                </Button>
-                <Button
-                  onClick={() => handleAction("countered")}
-                  variant="outline"
-                  size="lg"
-                  className="flex-1 border-blue-500/30 hover:bg-blue-500/10"
-                >
-                  <ArrowRight className="mr-2 w-5 h-5" /> Counter Offer
-                </Button>
-                <Button
-                  onClick={() => handleAction("rejected")}
-                  variant="outline"
-                  size="lg"
-                  className="flex-1 border-rose-500/30 hover:bg-rose-500/10 text-rose-400"
-                >
-                  <XCircle className="mr-2 w-5 h-5" /> Override
-                </Button>
+                  {/* Green zone (below floor) */}
+                  <div
+                    style={{
+                      position: "absolute",
+                      left: 0,
+                      top: 0,
+                      width: `${floorNum}%`,
+                      height: "100%",
+                      borderRadius: "3px 0 0 3px",
+                      background: "var(--green)",
+                      opacity: 0.3,
+                    }}
+                  />
+                  {/* Above-floor zone */}
+                  <div
+                    style={{
+                      position: "absolute",
+                      left: `${floorNum}%`,
+                      top: 0,
+                      width: `${100 - floorNum}%`,
+                      height: "100%",
+                      borderRadius: "0 3px 3px 0",
+                      background: "var(--amber)",
+                      opacity: 0.25,
+                    }}
+                  />
+                </div>
+
+                {/* Floor marker (vertical line) */}
+                <div
+                  style={{
+                    position: "absolute",
+                    left: `${floorNum}%`,
+                    top: "-4px",
+                    width: "2px",
+                    height: "14px",
+                    background: "var(--amber)",
+                    borderRadius: "1px",
+                  }}
+                />
+
+                {/* Recommendation dot */}
+                <div
+                  style={{
+                    position: "absolute",
+                    left: `${recNum}%`,
+                    top: "-5px",
+                    width: "16px",
+                    height: "16px",
+                    borderRadius: "50%",
+                    background: "var(--blue)",
+                    border: "2px solid #ffffff",
+                    boxShadow: "0 2px 8px rgba(29,91,191,0.35)",
+                    transform: "translateX(-50%)",
+                  }}
+                />
               </div>
 
-              <p className="text-center text-xs text-muted-foreground">
-                <Shield className="w-3 h-3 inline mr-1" />
-                This decision is logged for continuous model learning. Human approver stays in control.
-              </p>
-            </CardContent>
-          </Card>
+              {/* Labels */}
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  fontSize: "11px",
+                  fontWeight: 600,
+                  letterSpacing: "0.04em",
+                }}
+              >
+                <span style={{ color: "var(--green)" }}>Floor {current.floorPct}</span>
+                <span style={{ color: "var(--blue)" }}>Rec {current.recPct}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* ── CROSS-LINK CALLOUT TO UC2 ──────────────────── */}
+          <Link href="/planning" style={{ textDecoration: "none", display: "block" }}>
+            <div className="callout-crosslink">
+              <div style={{ flex: 1 }}>
+                <div
+                  style={{
+                    fontSize: "13px",
+                    fontWeight: 600,
+                    color: "var(--ink)",
+                    marginBottom: "4px",
+                  }}
+                >
+                  See how this deal&apos;s segment responds across incentive types →
+                </div>
+                <div style={{ fontSize: "12px", color: "var(--slate)" }}>
+                  Open Incentive Mix by Segment to explore response curves and budget allocation for the{" "}
+                  {current.segment.toLowerCase()} segment.
+                </div>
+              </div>
+              <span
+                style={{
+                  fontSize: "11px",
+                  fontWeight: 600,
+                  letterSpacing: "0.12em",
+                  textTransform: "uppercase",
+                  color: "var(--blue)",
+                  flexShrink: 0,
+                }}
+              >
+                UC2
+              </span>
+            </div>
+          </Link>
         </div>
       </div>
+
+      {/* Bottom spacing */}
+      <div style={{ height: "60px" }} />
     </div>
   );
 }
