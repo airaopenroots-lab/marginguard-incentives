@@ -1,16 +1,38 @@
 services:
   postgres:
     image: pgvector/pgvector:pg16
-    container_name: marginguard-postgres
+    container_name: marginguard-db
     environment:
-      POSTGRES_DB: incentives
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: marginguard
+      POSTGRES_PASSWORD: marginguard_dev
+      POSTGRES_DB: marginguard_incentives
     ports:
-      - "5433:5432"
+      - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-    restart: unless-stopped
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U marginguard -d marginguard_incentives"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: marginguard-app
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://marginguard:marginguard_dev@postgres:5432/marginguard_incentives
+      NODE_ENV: development
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
 
 volumes:
-  postgres_data:
+  pgdata:
