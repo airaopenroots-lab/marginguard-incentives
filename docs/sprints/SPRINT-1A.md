@@ -2,7 +2,7 @@
 
 **Project**: marginguard-incentives  
 **Date**: July 19, 2026  
-**Status**: In Progress  
+**Status**: COMPLETE  
 **Owner**: Marginguard (AI Co-Pilot)  
 **Reference**: Style Guide.dc.html, Incentive Intelligence.dc.html, Build Plan.dc.html
 
@@ -75,15 +75,15 @@ Hard-fork the entire visual layer from the Sprint 0 dark-theme prototype to the 
 
 ## Sprint Tasks
 - [x] Create Sprint 1A plan
-- [ ] WS-1: Design tokens + theme + layout
-- [ ] WS-2: Seeded data engine
-- [ ] WS-3: UC1 Deal Approval rebuild
-- [ ] WS-4: UC2 Planning Workbench rebuild
-- [ ] WS-5: Landing page rebuild
-- [ ] WS-6: Insights, History, Settings pages (style pass)
-- [ ] Bug sweep + error fixes
-- [ ] Build verification
-- [ ] Commit + push
+- [x] WS-1: Design tokens + theme + layout
+- [x] WS-2: Seeded data engine
+- [x] WS-3: UC1 Deal Approval rebuild
+- [x] WS-4: UC2 Planning Workbench rebuild
+- [x] WS-5: Landing page rebuild
+- [x] WS-6: Insights, History, Settings pages (style pass)
+- [x] Bug sweep + error fixes
+- [x] Build verification
+- [x] Commit + push
 
 ---
 
