@@ -63,7 +63,7 @@ export interface MonitoringAlert {
 }
 
 // ── Segment definitions ────────────────────────────────
-const SEGMENTS = [
+export const SEGMENTS = [
   {
     seg: "Regional haul",
     names: ["Cascade Regional Freight", "Bluegrass Haulage", "Pioneer Freight Lines", "Redwood Carriers", "Lakeshore Transport"],
@@ -105,7 +105,6 @@ export function generateDeals(seed: number): Deal[] {
   }
 
   const count = 5 + Math.floor(rng() * 3);
-  const gold = "#b45309";
   const lav = "#1d5bbf";
 
   return pool.slice(0, count).map((p, i) => {
@@ -223,7 +222,6 @@ function curve(k: number, m: number, color: string, opacity: number): ResponseCu
 
 // ── Segment card generator ─────────────────────────────
 export function generateSegments(seed: number): SegmentCard[] {
-  const rng = mulberry32(seed);
   const gold = "#b45309";
   const lav = "#1d5bbf";
   const cream = "#8fa3bb";

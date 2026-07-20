@@ -1,16 +1,9 @@
-"use client";
-
-import { useState, useEffect } from "react";
 import Link from "next/link";
-import { generateDeals } from "@/lib/seed-engine";
+import { getDeals } from "@/lib/db/repo";
 
-export default function Home() {
-  const [dealCount, setDealCount] = useState(0);
-
-  useEffect(() => {
-    const deals = generateDeals(42);
-    setDealCount(deals.length);
-  }, []);
+export default async function Home() {
+  const deals = await getDeals();
+  const dealCount = deals.length;
 
   return (
     <div
@@ -104,17 +97,6 @@ export default function Home() {
               cursor: "pointer",
               transition: "border-color 0.25s, box-shadow 0.25s",
             }}
-            onMouseEnter={(e) => {
-              const el = e.currentTarget;
-              el.style.borderColor = "rgba(29,91,191,0.5)";
-              el.style.boxShadow = "0 22px 52px -26px rgba(15,42,74,0.32)";
-            }}
-            onMouseLeave={(e) => {
-              const el = e.currentTarget;
-              el.style.borderColor = "rgba(29,91,191,0.35)";
-              el.style.boxShadow =
-                "0 18px 44px -26px rgba(15,42,74,0.25)";
-            }}
           >
             {/* Card label */}
             <span
@@ -184,17 +166,6 @@ export default function Home() {
             style={{
               cursor: "pointer",
               transition: "border-color 0.25s, box-shadow 0.25s",
-            }}
-            onMouseEnter={(e) => {
-              const el = e.currentTarget;
-              el.style.borderColor = "rgba(29,91,191,0.5)";
-              el.style.boxShadow = "0 22px 52px -26px rgba(15,42,74,0.32)";
-            }}
-            onMouseLeave={(e) => {
-              const el = e.currentTarget;
-              el.style.borderColor = "rgba(29,91,191,0.35)";
-              el.style.boxShadow =
-                "0 18px 44px -26px rgba(15,42,74,0.25)";
             }}
           >
             <span
@@ -333,8 +304,7 @@ export default function Home() {
           className="slate"
           style={{ fontSize: 12, letterSpacing: "0.04em" }}
         >
-          Marginguard Incentives OS · Sprint 0 Prototype · PostgreSQL +
-          pgvector · Version 1
+          Marginguard Incentives OS · Sprint 1: Persistence &amp; Vector · Live Database
         </p>
       </footer>
     </div>
