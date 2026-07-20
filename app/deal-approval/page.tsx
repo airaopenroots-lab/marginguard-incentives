@@ -14,6 +14,7 @@ export default function DealApprovalPage() {
   const [seed, setSeed] = useState(42);
   const [selectedIdx, setSelectedIdx] = useState(0);
   const [decidedIds, setDecidedIds] = useState<Set<string>>(new Set());
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const deals = useMemo(() => generateDeals(seed), [seed]);
   const current = deals[selectedIdx];
@@ -96,11 +97,44 @@ export default function DealApprovalPage() {
       </header>
 
       {/* ── MAIN GRID: SIDEBAR + CONTENT ──────────────────── */}
-      <div style={{ display: "grid", gridTemplateColumns: "320px 1fr", gap: "36px" }}>
+      <div 
+        style={{ 
+          display: "grid", 
+          gridTemplateColumns: sidebarCollapsed ? "60px 1fr" : "320px 1fr", 
+          gap: sidebarCollapsed ? "20px" : "36px",
+          transition: "grid-template-columns 0.4s cubic-bezier(0.4, 0, 0.2, 1), gap 0.4s"
+        }}
+      >
         {/* ── LEFT SIDEBAR: Approval Queue ─────────────────── */}
-        <aside style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-          <div className="label-caps" style={{ padding: "0 4px", marginBottom: "2px" }}>
-            Approval Queue
+        <aside style={{ display: "flex", flexDirection: "column", gap: "10px", overflow: "hidden" }}>
+          <div 
+            style={{ 
+              display: "flex", 
+              alignItems: "center", 
+              justifyContent: "space-between",
+              padding: "0 4px", 
+              marginBottom: "2px" 
+            }}
+          >
+            {!sidebarCollapsed && <div className="label-caps">Approval Queue</div>}
+            <button 
+              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+              style={{ 
+                background: "transparent", 
+                border: "none", 
+                cursor: "pointer", 
+                color: "var(--blue)",
+                fontSize: "14px",
+                padding: "4px",
+                borderRadius: "3px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center"
+              }}
+              title={sidebarCollapsed ? "Expand Queue" : "Collapse Queue"}
+            >
+              {sidebarCollapsed ? "→" : "←"}
+            </button>
           </div>
 
           {deals.map((deal, idx) => {
@@ -117,56 +151,72 @@ export default function DealApprovalPage() {
                   transition: "all 0.2s",
                   display: "flex",
                   flexDirection: "column",
-                  gap: "10px",
+                  gap: sidebarCollapsed ? "0px" : "10px",
+                  padding: sidebarCollapsed ? "12px 0" : "18px 20px",
+                  alignItems: sidebarCollapsed ? "center" : "stretch"
                 }}
               >
-                {/* Top row: customer + verdict badge */}
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "flex-start",
-                    gap: "8px",
-                  }}
-                >
-                  <div style={{ fontWeight: 600, fontSize: "14px", lineHeight: 1.3 }}>
-                    {deal.customer}
-                  </div>
-                  <span
-                    className="badge-verdict"
-                    style={{
-                      background:
-                        deal.verdict === "APPROVE"
-                          ? "rgba(14,122,95,0.1)"
-                          : deal.verdict === "COUNTER"
-                            ? "rgba(29,91,191,0.1)"
-                            : "rgba(100,116,139,0.1)",
-                      color: deal.verdictColor,
-                      border: `1px solid ${deal.verdictColor}33`,
-                      flexShrink: 0,
-                    }}
-                  >
-                    {VERDICT_LABELS[deal.verdict] ?? deal.verdict}
-                  </span>
-                </div>
+                {sidebarCollapsed ? (
+                  <div 
+                    style={{ 
+                      width: "12px", 
+                      height: "12px", 
+                      borderRadius: "50%", 
+                      background: deal.verdictColor,
+                      boxShadow: active ? `0 0 10px ${deal.verdictColor}66` : "none"
+                    }} 
+                  />
+                ) : (
+                  <>
+                    {/* Top row: customer + verdict badge */}
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "flex-start",
+                        gap: "8px",
+                      }}
+                    >
+                      <div style={{ fontWeight: 600, fontSize: "14px", lineHeight: 1.3 }}>
+                        {deal.customer}
+                      </div>
+                      <span
+                        className="badge-verdict"
+                        style={{
+                          background:
+                            deal.verdict === "APPROVE"
+                              ? "rgba(14,122,95,0.1)"
+                              : deal.verdict === "COUNTER"
+                                ? "rgba(29,91,191,0.1)"
+                                : "rgba(100,116,139,0.1)",
+                          color: deal.verdictColor,
+                          border: `1px solid ${deal.verdictColor}33`,
+                          flexShrink: 0,
+                        }}
+                      >
+                        {VERDICT_LABELS[deal.verdict] ?? deal.verdict}
+                      </span>
+                    </div>
 
-                {/* Config + requested */}
-                <div style={{ fontSize: "12px", color: "var(--slate)", lineHeight: 1.5 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between" }}>
-                    <span>{deal.config}</span>
-                    <span style={{ fontWeight: 500, color: "var(--ink)" }}>
-                      {deal.requested}
-                    </span>
-                  </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginTop: "2px" }}>
-                    <span>
-                      {deal.segment} · {deal.age}
-                    </span>
-                  </div>
-                </div>
+                    {/* Config + requested */}
+                    <div style={{ fontSize: "12px", color: "var(--slate)", lineHeight: 1.5 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between" }}>
+                        <span>{deal.config}</span>
+                        <span style={{ fontWeight: 500, color: "var(--ink)" }}>
+                          {deal.requested}
+                        </span>
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "space-between", marginTop: "2px" }}>
+                        <span>
+                          {deal.segment} · {deal.age}
+                        </span>
+                      </div>
+                    </div>
+                  </>
+                )}
 
                 {/* Decided indicator */}
-                {done && (
+                {!sidebarCollapsed && done && (
                   <div
                     style={{
                       fontSize: "11px",

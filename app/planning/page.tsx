@@ -13,6 +13,7 @@ const INITIAL_SEED = 42;
 
 export default function PlanningWorkbench() {
   const [seed, setSeed] = useState(INITIAL_SEED);
+  const [configMode, setConfigMode] = useState<"quick" | "guided">("quick");
   const [d, setD] = useState(60);
   const [r, setR] = useState(45);
   const [f, setF] = useState(15);
@@ -250,148 +251,225 @@ export default function PlanningWorkbench() {
         }}
       >
         {/* Budget scenario panel — card-hero */}
-        <div className="card-hero">
-          <div className="label-caps" style={{ marginBottom: 20 }}>
-            Budget scenario
-          </div>
-
-          {/* Discount slider */}
-          <div style={{ marginBottom: 22 }}>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "baseline",
-                marginBottom: 8,
-              }}
-            >
-              <span style={{ fontWeight: 600, fontSize: 14, color: "var(--ink)" }}>
-                Upfront discount
-              </span>
-              <span
+        <div className="card-hero" style={{ display: "flex", flexDirection: "column" }}>
+          <div 
+            style={{ 
+              display: "flex", 
+              justifyContent: "space-between", 
+              alignItems: "center",
+              marginBottom: 20 
+            }}
+          >
+            <div className="label-caps">Budget scenario</div>
+            <div style={{ display: "flex", gap: "4px", background: "rgba(15,42,74,0.05)", padding: "3px", borderRadius: "4px" }}>
+              <button 
+                onClick={() => setConfigMode("quick")}
                 style={{
-                  fontFamily: "monospace",
-                  fontWeight: 700,
-                  fontSize: 15,
-                  color: "var(--amber)",
+                  fontSize: "10px",
+                  fontWeight: 600,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.1em",
+                  padding: "4px 8px",
+                  borderRadius: "3px",
+                  border: "none",
+                  cursor: "pointer",
+                  background: configMode === "quick" ? "var(--card)" : "transparent",
+                  color: configMode === "quick" ? "var(--blue)" : "var(--slate)",
+                  boxShadow: configMode === "quick" ? "0 1px 3px rgba(0,0,0,0.1)" : "none"
                 }}
-              >
-                {proj.dLabel}
-              </span>
-            </div>
-            <input
-              type="range"
-              min={0}
-              max={80}
-              value={d}
-              onChange={(e) => setD(Number(e.target.value))}
-              style={{ width: "100%" }}
-            />
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                fontSize: 11,
-                color: "var(--slate)",
-                marginTop: 4,
-              }}
-            >
-              <span>$0M</span>
-              <span>$8.0M</span>
+              >Quick</button>
+              <button 
+                onClick={() => setConfigMode("guided")}
+                style={{
+                  fontSize: "10px",
+                  fontWeight: 600,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.1em",
+                  padding: "4px 8px",
+                  borderRadius: "3px",
+                  border: "none",
+                  cursor: "pointer",
+                  background: configMode === "guided" ? "var(--card)" : "transparent",
+                  color: configMode === "guided" ? "var(--blue)" : "var(--slate)",
+                  boxShadow: configMode === "guided" ? "0 1px 3px rgba(0,0,0,0.1)" : "none"
+                }}
+              >Guided</button>
             </div>
           </div>
 
-          {/* Rebate slider */}
-          <div style={{ marginBottom: 22 }}>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "baseline",
-                marginBottom: 8,
-              }}
-            >
-              <span style={{ fontWeight: 600, fontSize: 14, color: "var(--ink)" }}>
-                Volume rebate
-              </span>
-              <span
-                style={{
-                  fontFamily: "monospace",
-                  fontWeight: 700,
-                  fontSize: 15,
-                  color: "var(--blue)",
-                }}
-              >
-                {proj.rLabel}
-              </span>
-            </div>
-            <input
-              type="range"
-              min={0}
-              max={80}
-              value={r}
-              onChange={(e) => setR(Number(e.target.value))}
-              style={{ width: "100%" }}
-            />
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                fontSize: 11,
-                color: "var(--slate)",
-                marginTop: 4,
-              }}
-            >
-              <span>$0M</span>
-              <span>$8.0M</span>
-            </div>
-          </div>
+          {configMode === "quick" ? (
+            <div className="animate-rise">
+              {/* Discount slider */}
+              <div style={{ marginBottom: 22 }}>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "baseline",
+                    marginBottom: 8,
+                  }}
+                >
+                  <span style={{ fontWeight: 600, fontSize: 14, color: "var(--ink)" }}>
+                    Upfront discount
+                  </span>
+                  <span
+                    style={{
+                      fontFamily: "monospace",
+                      fontWeight: 700,
+                      fontSize: 15,
+                      color: "var(--amber)",
+                    }}
+                  >
+                    {proj.dLabel}
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min={0}
+                  max={80}
+                  value={d}
+                  onChange={(e) => setD(Number(e.target.value))}
+                  style={{ width: "100%" }}
+                />
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    fontSize: 11,
+                    color: "var(--slate)",
+                    marginTop: 4,
+                  }}
+                >
+                  <span>$0M</span>
+                  <span>$8.0M</span>
+                </div>
+              </div>
 
-          {/* Financing slider */}
-          <div style={{ marginBottom: 26 }}>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "baseline",
-                marginBottom: 8,
-              }}
-            >
-              <span style={{ fontWeight: 600, fontSize: 14, color: "var(--ink)" }}>
-                Financing assistance
-              </span>
-              <span
-                style={{
-                  fontFamily: "monospace",
-                  fontWeight: 700,
-                  fontSize: 15,
-                  color: "var(--slate)",
-                }}
-              >
-                {proj.fLabel}
-              </span>
+              {/* Rebate slider */}
+              <div style={{ marginBottom: 22 }}>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "baseline",
+                    marginBottom: 8,
+                  }}
+                >
+                  <span style={{ fontWeight: 600, fontSize: 14, color: "var(--ink)" }}>
+                    Volume rebate
+                  </span>
+                  <span
+                    style={{
+                      fontFamily: "monospace",
+                      fontWeight: 700,
+                      fontSize: 15,
+                      color: "var(--blue)",
+                    }}
+                  >
+                    {proj.rLabel}
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min={0}
+                  max={80}
+                  value={r}
+                  onChange={(e) => setR(Number(e.target.value))}
+                  style={{ width: "100%" }}
+                />
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    fontSize: 11,
+                    color: "var(--slate)",
+                    marginTop: 4,
+                  }}
+                >
+                  <span>$0M</span>
+                  <span>$8.0M</span>
+                </div>
+              </div>
+
+              {/* Financing slider */}
+              <div style={{ marginBottom: 26 }}>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "baseline",
+                    marginBottom: 8,
+                  }}
+                >
+                  <span style={{ fontWeight: 600, fontSize: 14, color: "var(--ink)" }}>
+                    Financing assistance
+                  </span>
+                  <span
+                    style={{
+                      fontFamily: "monospace",
+                      fontWeight: 700,
+                      fontSize: 15,
+                      color: "var(--slate)",
+                    }}
+                  >
+                    {proj.fLabel}
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min={0}
+                  max={80}
+                  value={f}
+                  onChange={(e) => setF(Number(e.target.value))}
+                  style={{ width: "100%" }}
+                />
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    fontSize: 11,
+                    color: "var(--slate)",
+                    marginTop: 4,
+                  }}
+                >
+                  <span>$0M</span>
+                  <span>$8.0M</span>
+                </div>
+              </div>
             </div>
-            <input
-              type="range"
-              min={0}
-              max={80}
-              value={f}
-              onChange={(e) => setF(Number(e.target.value))}
-              style={{ width: "100%" }}
-            />
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                fontSize: 11,
-                color: "var(--slate)",
-                marginTop: 4,
-              }}
-            >
-              <span>$0M</span>
-              <span>$8.0M</span>
+          ) : (
+            <div className="animate-rise" style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: "16px" }}>
+              <div className="alert-blue" style={{ border: "1px dashed var(--border-blue)", background: "var(--wash-blue)" }}>
+                <div>
+                  <div style={{ fontWeight: 600, fontSize: "14px", marginBottom: "4px" }}>Guided Program Config</div>
+                  <p style={{ margin: 0, fontSize: "12.5px", color: "var(--slate)", lineHeight: 1.5 }}>
+                    Answer three strategic questions to have the AI auto-allocate your $12M budget for maximum incremental units.
+                  </p>
+                </div>
+              </div>
+              
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                <div style={{ fontSize: "13px" }}>
+                  <div style={{ fontWeight: 600, marginBottom: "6px" }}>1. Primary Objective?</div>
+                  <div style={{ display: "flex", gap: "8px" }}>
+                    {["Volume", "Margin", "Market Share"].map(o => (
+                      <button key={o} style={{ flex: 1, padding: "8px", borderRadius: "4px", border: "1px solid var(--border-medium)", background: "var(--card)", fontSize: "11px", fontWeight: 600, textTransform: "uppercase" }}>{o}</button>
+                    ))}
+                  </div>
+                </div>
+                <div style={{ fontSize: "13px" }}>
+                  <div style={{ fontWeight: 600, marginBottom: "6px" }}>2. Focus Segment?</div>
+                  <div style={{ display: "flex", gap: "8px" }}>
+                    {["Enterprise", "Vocational"].map(s => (
+                      <button key={s} style={{ flex: 1, padding: "8px", borderRadius: "4px", border: "1px solid var(--border-medium)", background: "var(--card)", fontSize: "11px", fontWeight: 600, textTransform: "uppercase" }}>{s}</button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              
+              <button className="btn-primary" style={{ marginTop: "8px", width: "100%", padding: "12px" }}>Generate Optimal Mix →</button>
             </div>
-          </div>
+          )}
 
           {/* Scenario total */}
           <div
@@ -400,6 +478,7 @@ export default function PlanningWorkbench() {
               justifyContent: "space-between",
               alignItems: "baseline",
               paddingTop: 16,
+              marginTop: "auto",
               borderTop: "1px solid var(--border-light)",
             }}
           >
