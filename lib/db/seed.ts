@@ -3,7 +3,7 @@ import { segments, customers, deals } from "./schema";
 import { generateDeals, type Deal } from "../seed-engine";
 import { sql } from "drizzle-orm";
 
-async function main() {
+export async function seedDB() {
   console.log("Seeding database...");
 
   // 1. Clear existing data
@@ -133,10 +133,13 @@ async function main() {
   
   console.log(`Inserted ${dealValues.length} deals.`);
   console.log("Seeding complete.");
-  process.exit(0);
+  // process.exit(0);
 }
 
-main().catch(err => {
-  console.error(err);
-  process.exit(1);
-});
+
+if (import.meta.url === `file://${process.argv[1]}`) {
+  seedDB().catch(err => {
+    console.error(err);
+    process.exit(1);
+  });
+}

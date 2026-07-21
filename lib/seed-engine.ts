@@ -280,24 +280,57 @@ export function generateAlerts(): MonitoringAlert[] {
 }
 
 // ── Projection computation ─────────────────────────────
-export function computeProjection(d: number, r: number, f: number) {
-  const total = (d + r + f) / 10;
-  const over = Math.abs(total - 12) > 0.05;
+export interface SegmentBudget {
+  d: number;
+  r: number;
+  f: number;
+  k: number[];
+  m: number[];
+  baseUnits: number;
+}
 
-  const units = Math.round(
-    420 * resp(3.2, 1, d / 10) +
-    360 * resp(3.4, 1, (r * 0.82) / 10) +
-    380 * resp(2.6, 1, f / 10)
-  );
+export function computeProjection(segmentBudgets: SegmentBudget[]) {
+  let totalUnits = 0;
+  let totalBaseline = 0;
+  let totalSpend = 0;
 
-  const baseline = Math.round(
-    420 * resp(3.2, 1, 6.0) +
-    360 * resp(3.4, 1, 4.5 * 0.82) +
-    380 * resp(2.6, 1, 1.5)
-  );
+  let totalD = 0;
+  let totalR = 0;
+  let totalF = 0;
 
-  const delta = units - baseline;
-  const costPerUnit = units > 0 ? "$" + Math.round((total * 1e6) / units).toLocaleString() : "—";
+  segmentBudgets.forEach(b => {
+    totalD += b.d;
+    totalR += b.r;
+    totalF += b.f;
+    totalSpend += (b.d + b.r + b.f);
+
+    const units = Math.round(
+      b.baseUnits * (
+        resp(b.k[0], b.m[0], b.d) +
+        resp(b.k[1], b.m[1], b.r) +
+        resp(b.k[2], b.m[2], b.f)
+      )
+    );
+    totalUnits += units;
+
+    // Baseline: fixed mix of $6.0M discount, $4.5M rebate, $1.5M financing distributed across 4 segments
+    const bD = 6.0 / 4;
+    const bR = 4.5 / 4;
+    const bF = 1.5 / 4;
+
+    const baseline = Math.round(
+      b.baseUnits * (
+        resp(b.k[0], b.m[0], bD) +
+        resp(b.k[1], b.m[1], bR) +
+        resp(b.k[2], b.m[2], bF)
+      )
+    );
+    totalBaseline += baseline;
+  });
+
+  const over = Math.abs(totalSpend - 12) > 0.05;
+  const delta = totalUnits - totalBaseline;
+  const costPerUnit = totalUnits > 0 ? "$" + Math.round((totalSpend * 1e6) / totalUnits).toLocaleString() : "—";
 
   let scenarioInsight: string;
   if (delta > 15) {
@@ -309,17 +342,17 @@ export function computeProjection(d: number, r: number, f: number) {
   }
 
   return {
-    total,
+    total: totalSpend,
     over,
-    units,
-    baseline,
+    units: totalUnits,
+    baseline: totalBaseline,
     delta,
     costPerUnit,
     scenarioInsight,
-    dLabel: "$" + (d / 10).toFixed(1) + "M",
-    rLabel: "$" + (r / 10).toFixed(1) + "M",
-    fLabel: "$" + (f / 10).toFixed(1) + "M",
-    totalLabel: "$" + total.toFixed(1) + "M" + (over ? (total > 12 ? " — over budget" : " — under budget") : " ✓"),
+    dLabel: "$" + totalD.toFixed(1) + "M",
+    rLabel: "$" + totalR.toFixed(1) + "M",
+    fLabel: "$" + totalF.toFixed(1) + "M",
+    totalLabel: "$" + totalSpend.toFixed(1) + "M" + (over ? (totalSpend > 12 ? " — over budget" : " — under budget") : " ✓"),
     totalColor: over ? "#b45309" : "#0e7a5f",
     deltaLabel: (delta >= 0 ? "+" : "") + delta + " units",
     deltaColor: delta >= 0 ? "#0e7a5f" : "#b45309",

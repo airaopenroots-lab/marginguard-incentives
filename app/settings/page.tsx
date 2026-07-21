@@ -1,8 +1,28 @@
 "use client";
 
 import Link from "next/link";
+import { resetDatabase, clearDecisions } from "@/lib/actions";
+import { useState } from "react";
 
 export default function SettingsPage() {
+  const [loading, setLoading] = useState(false);
+
+  const handleReset = async () => {
+    if (!confirm("Are you sure? This will wipe all data and re-seed the database.")) return;
+    setLoading(true);
+    await resetDatabase();
+    setLoading(false);
+    alert("Database reset complete.");
+  };
+
+  const handleClear = async () => {
+    if (!confirm("Are you sure? This will wipe all decision feedback.")) return;
+    setLoading(true);
+    await clearDecisions();
+    setLoading(false);
+    alert("Decisions cleared.");
+  };
+
   return (
     <div className="animate-rise" style={{ maxWidth: "var(--max-width)", margin: "0 auto", padding: "34px var(--gutter) 60px" }}>
       {/* Header */}
@@ -25,6 +45,32 @@ export default function SettingsPage() {
       </h1>
 
       <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+        {/* Maintenance */}
+        <div className="card-default">
+          <div className="label-caps" style={{ marginBottom: "16px" }}>Database Maintenance</div>
+          <div style={{ display: "flex", gap: "12px" }}>
+            <button 
+              className="btn-secondary" 
+              onClick={handleReset} 
+              disabled={loading}
+              style={{ fontSize: "11px", padding: "10px 18px" }}
+            >
+              {loading ? "Processing..." : "Reseed Database"}
+            </button>
+            <button 
+              className="btn-secondary" 
+              onClick={handleClear} 
+              disabled={loading}
+              style={{ fontSize: "11px", padding: "10px 18px", color: "var(--amber)", borderColor: "var(--amber)" }}
+            >
+              {loading ? "Processing..." : "Clear Decisions"}
+            </button>
+          </div>
+          <p style={{ fontSize: "12px", color: "var(--slate)", marginTop: "12px" }}>
+            Use these actions to reset the environment for testing or to clear out stale feedback loops.
+          </p>
+        </div>
+
         {/* Data Sources */}
         <div className="card-default">
           <div className="label-caps" style={{ marginBottom: "16px" }}>Connected data sources</div>
@@ -71,14 +117,14 @@ export default function SettingsPage() {
           <div className="label-caps" style={{ marginBottom: "16px" }}>Architecture</div>
           <div style={{ fontSize: "13.5px", lineHeight: 1.9, color: "var(--ink)" }}>
             <strong>Stack:</strong> Next.js 15, TypeScript, seeded data engine (mulberry32 PRNG)<br />
-            <strong>Database:</strong> PostgreSQL 16 + pgvector (planned Sprint 2)<br />
+            <strong>Database:</strong> PostgreSQL 16 + pgvector (Sprint 2)<br />
             <strong>Deploy:</strong> Docker Compose · Tailscale-ready<br />
             <strong>Data spine:</strong> Seeded PRNG → shared data layer → scoring logic (UC1) + response curves (UC2) → two screens + feedback log
           </div>
         </div>
 
         <p style={{ textAlign: "center", fontSize: "12px", color: "var(--slate)", paddingTop: "16px" }}>
-          Incentive Intelligence · Sprint 1A · Design System Rebase
+          Incentive Intelligence · Sprint 2 · Closing the Loop
         </p>
       </div>
     </div>

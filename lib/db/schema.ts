@@ -95,3 +95,12 @@ export const feedbackRelations = relations(feedback, ({ one }) => ({
     references: [deals.id],
   }),
 }));
+
+export const scenarios = pgTable("scenarios", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: text("name").notNull(),
+  config: text("config"), // JSON string of segment budgets
+  totalSpend: decimal("total_spend", { precision: 10, scale: 2 }),
+  projectedDelta: integer("projected_delta"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
