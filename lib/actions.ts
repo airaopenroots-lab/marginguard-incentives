@@ -1,6 +1,6 @@
 "use server";
 
-import { getDeals, getSegments, getInsights, getHistory, getStats, saveScenario, getScenarios } from "./db/repo";
+import { getDeals, getSegments, getInsights, getHistory, getStats, saveScenario, getScenarios, getConfig, updateConfig, getDataSources, addDataSource } from "./db/repo";
 import { db } from "./db";
 import { feedback } from "./db/schema";
 import { seedDB } from "./db/seed";
@@ -95,4 +95,31 @@ export async function saveScenarioAction(data: { name: string, config: string, t
 
 export async function fetchScenarios() {
   return await getScenarios();
+}
+
+export async function fetchConfig() {
+  const cfg = await getConfig();
+  // Default values if not in DB
+  return {
+    confidence_threshold: cfg.confidence_threshold || "75",
+    margin_floor: cfg.margin_floor || "3.5",
+    payment_threshold: cfg.payment_threshold || "45",
+    refresh_interval: cfg.refresh_interval || "7",
+  };
+}
+
+export async function saveConfigAction(key: string, value: string) {
+  await updateConfig(key, value);
+  revalidatePath("/settings");
+  return { success: true };
+}
+
+export async function fetchDataSources() {
+  return await getDataSources();
+}
+
+export async function addDataSourceAction(name: string) {
+  await addDataSource(name);
+  revalidatePath("/settings");
+  return { success: true };
 }

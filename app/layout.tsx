@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import OnboardingTour from "@/components/OnboardingTour";
 
 export const metadata: Metadata = {
   title: "Incentive Intelligence · Truck OEM",
@@ -30,6 +31,7 @@ export default function RootLayout({
         <div style={{ position: "relative", minHeight: "100vh", overflow: "hidden" }}>
           {children}
         </div>
+        <OnboardingTour />
       </body>
     </html>
   );

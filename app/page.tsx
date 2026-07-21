@@ -304,7 +304,7 @@ export default async function Home() {
           className="slate"
           style={{ fontSize: 12, letterSpacing: "0.04em" }}
         >
-          Marginguard Incentives OS · Sprint 1: Persistence &amp; Vector · Live Database
+          Marginguard Incentives OS · Sprint 3: Strategic Expansion · Live Reallocation Engine
         </p>
       </footer>
     </div>

@@ -1,8 +1,11 @@
 import { db } from "./index";
-import { deals, customers, feedback, segments, scenarios } from "./schema";
+import { deals, customers, feedback, segments, scenarios, config, dataSources } from "./schema";
 import { eq, desc, l2Distance, sql, count, avg } from "drizzle-orm";
 
 export async function getDeals() {
+  const cfg = await getConfig();
+  const floorThreshold = parseFloat(cfg.margin_floor || "3.5");
+
   return await db.query.deals.findMany({
     with: {
       customer: {
@@ -134,4 +137,31 @@ export async function getScenarios() {
   return await db.query.scenarios.findMany({
     orderBy: [desc(scenarios.createdAt)],
   });
+}
+
+export async function getConfig() {
+  const data = await db.query.config.findMany();
+  return data.reduce((acc, curr) => {
+    acc[curr.key] = curr.value;
+    return acc;
+  }, {} as Record<string, string>);
+}
+
+export async function updateConfig(key: string, value: string) {
+  return await db.insert(config)
+    .values({ key, value })
+    .onConflictDoUpdate({
+      target: config.key,
+      set: { value, updatedAt: new Date() }
+    });
+}
+
+export async function getDataSources() {
+  return await db.query.dataSources.findMany({
+    orderBy: [desc(dataSources.lastSync)]
+  });
+}
+
+export async function addDataSource(name: string) {
+  return await db.insert(dataSources).values({ name }).returning();
 }

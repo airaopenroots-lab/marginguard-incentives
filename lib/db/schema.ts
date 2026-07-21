@@ -104,3 +104,17 @@ export const scenarios = pgTable("scenarios", {
   projectedDelta: integer("projected_delta"),
   createdAt: timestamp("created_at").defaultNow(),
 });
+
+export const config = pgTable("config", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull(),
+  description: text("description"),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const dataSources = pgTable("data_sources", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: text("name").notNull(),
+  status: text("status").notNull().default("Connected"),
+  lastSync: timestamp("last_sync").defaultNow(),
+});
