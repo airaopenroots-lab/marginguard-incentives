@@ -27,28 +27,40 @@ const STEPS = [
     body: "Every decision is logged. Review historical overrides and performance results here.",
     target: "/history",
     selector: "[data-tour='history']"
+  },
+  {
+    title: "Data Sovereignty",
+    body: "Connect external ERP or CRM systems. Marginguard uses these to build your response curves.",
+    target: "/settings",
+    selector: "[data-tour='settings']"
   }
 ];
 
-export default function OnboardingTour() {
+export default function OnboardingTour({ userRole }: { userRole?: string }) {
   const [step, setStep] = useState(-1);
   const router = useRouter();
 
+  const filteredSteps = STEPS.filter(s => {
+    if (userRole === "ADMIN") return true;
+    // Operator steps
+    return ["Intelligence Feed", "Deal Approval", "Planning Workbench"].includes(s.title);
+  });
+
   useEffect(() => {
     const completed = localStorage.getItem("marginguard_tour_complete");
-    if (!completed) {
+    if (!completed && filteredSteps.length > 0 && step === -1) {
       setStep(0);
     }
-  }, []);
+  }, [filteredSteps.length, step]);
 
-  if (step === -1) return null;
+  if (step === -1 || filteredSteps.length === 0) return null;
 
-  const current = STEPS[step];
+  const current = filteredSteps[step];
 
   const handleNext = () => {
-    if (step < STEPS.length - 1) {
+    if (step < filteredSteps.length - 1) {
       setStep(step + 1);
-      router.push(STEPS[step + 1].target);
+      router.push(filteredSteps[step + 1].target);
     } else {
       localStorage.setItem("marginguard_tour_complete", "true");
       setStep(-1);
@@ -63,7 +75,7 @@ export default function OnboardingTour() {
       animation: "rise 0.4s ease-out"
     }}>
       <div className="label-caps" style={{ color: "var(--blue)", marginBottom: "8px", fontSize: "10px" }}>
-        Deployment Briefing · Step {step + 1} of {STEPS.length}
+        Deployment Briefing · Step {step + 1} of {filteredSteps.length}
       </div>
       <h3 className="serif" style={{ fontSize: "20px", marginBottom: "12px", color: "var(--ink)" }}>{current.title}</h3>
       <p style={{ fontSize: "14px", color: "var(--slate)", lineHeight: 1.5, marginBottom: "20px" }}>{current.body}</p>
@@ -83,7 +95,7 @@ export default function OnboardingTour() {
                 fontSize: "13px", cursor: "pointer" 
             }}
         >
-            {step === STEPS.length - 1 ? "Complete Deployment" : "Next Objective"}
+            {step === filteredSteps.length - 1 ? "Complete Deployment" : "Next Objective"}
         </button>
       </div>
     </div>

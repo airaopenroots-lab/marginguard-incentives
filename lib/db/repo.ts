@@ -126,7 +126,7 @@ export async function getStats() {
   };
 }
 
-export async function saveScenario(data: { name: string, config: string, totalSpend: number, projectedDelta: number }) {
+export async function saveScenario(data: { name: string, config: string, totalSpend: number, projectedDelta: number, snapshotId?: string }) {
   return await db.insert(scenarios).values({
     ...data,
     totalSpend: data.totalSpend.toString(),
@@ -164,4 +164,16 @@ export async function getDataSources() {
 
 export async function addDataSource(name: string) {
   return await db.insert(dataSources).values({ name }).returning();
+}
+
+export async function getDataSourceById(id: string) {
+  return await db.query.dataSources.findFirst({
+    where: eq(dataSources.id, id)
+  });
+}
+
+export async function updateDataSourceMapping(id: string, mapping: any) {
+  return await db.update(dataSources)
+    .set({ mapping })
+    .where(eq(dataSources.id, id));
 }

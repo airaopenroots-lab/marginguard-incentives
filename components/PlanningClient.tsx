@@ -1,6 +1,45 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, memo, useEffect, useRef } from "react";
+
+// Optimized Row Component
+const SegmentRow = memo(({ seg, budgets, updateSegmentBudget, curveColors }: any) => {
+  const totalBudget = ((budgets[seg.id]?.d || 0) + (budgets[seg.id]?.r || 0) + (budgets[seg.id]?.f || 0)).toFixed(1);
+
+  return (
+    <tr style={{ borderBottom: "1px solid var(--border-light)" }}>
+      <td style={{ padding: "16px 20px" }}>
+        <div style={{ fontWeight: 600, fontSize: "14px" }}>{seg.name}</div>
+        <div style={{ fontSize: "12px", color: "var(--slate)" }}>{seg.description}</div>
+      </td>
+      <td style={{ padding: "16px 20px" }}>
+        <svg viewBox="0 0 200 40" style={{ width: 120, height: 24, opacity: 0.8 }}>
+          {seg.curves.map((curve: any, ci: number) => (
+             <polyline key={ci} points={curve.sparklinePoints} stroke={curve.color} fill="none" strokeWidth="2" />
+          ))}
+        </svg>
+      </td>
+      <td style={{ padding: "16px 20px", textAlign: "right", fontFamily: "monospace", fontWeight: 700 }}>
+        ${totalBudget}M
+      </td>
+      <td style={{ padding: "16px 20px", textAlign: "right" }}>
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: "6px" }}>
+           {['d', 'r', 'f'].map((type) => (
+             <input 
+               key={type}
+               type="number" step="0.1" min="0"
+               value={budgets[seg.id]?.[type as 'd'|'r'|'f'] || 0}
+               onChange={(e) => updateSegmentBudget(seg.id, type as 'd'|'r'|'f', parseFloat(e.target.value))}
+               style={{ width: "48px", textAlign: "center", fontSize: "12px", padding: "4px", border: "1px solid var(--border-light)", borderRadius: "4px", background: "rgba(15,42,74,0.02)" }}
+             />
+           ))}
+        </div>
+      </td>
+    </tr>
+  );
+});
+
+SegmentRow.displayName = "SegmentRow";
 import Link from "next/link";
 import { computeProjection } from "@/lib/seed-engine";
 import { saveScenarioAction } from "@/lib/actions";
@@ -39,10 +78,12 @@ const STRATEGIES = [
   { id: "financing", label: "Financing Dominance", d: 15, r: 15, f: 70, desc: "Leverage interest assistance for owner-operators." },
 ];
 
-export default function PlanningClient({ initialSegments, initialScenarios }: { initialSegments: DBUIPlannedSegment[], initialScenarios: DBScenario[] }) {
+export default function PlanningClient({ initialSegments, initialScenarios, userRole }: { initialSegments: DBUIPlannedSegment[], initialScenarios: DBScenario[], userRole?: string }) {
   const [configMode, setConfigMode] = useState<"quick" | "guided">("quick");
   const [viewMode, setViewMode] = useState<"cards" | "list">("cards");
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
+
+  const isAdmin = userRole === "ADMIN";
   
   const [budgets, setBudgets] = useState<Record<number, { d: number; r: number; f: number }>>(() => {
     const initial: Record<number, { d: number; r: number; f: number }> = {};
@@ -130,23 +171,54 @@ export default function PlanningClient({ initialSegments, initialScenarios }: { 
     setTimeout(() => setSaveStatus(null), 2000);
   };
 
-  // Prepare curves for rendering
-  const segmentsWithCurves = initialSegments.map(s => {
-    const k = (s.k || []).map(parseFloat);
-    const m = (s.m || []).map(parseFloat);
-    
-    const curves: UICurve[] = k.map((ki: number, ci: number) => {
-      const pts: string[] = [];
-      for (let i = 0; i <= 20; i++) {
-        const x = i / 20;
-        const resVal = m[ci] * (1 - Math.exp(-x / ki));
-        pts.push((x * 200).toFixed(0) + "," + (90 - resVal * 82).toFixed(1));
-      }
-      return { pts: pts.join(" "), color: curveColors[ci], opacity: 1 };
-    });
+  // Prepare curves for rendering (Memoized for performance)
+  const segmentsWithCurves = useMemo(() => {
+    return initialSegments.map(s => {
+      const k = (s.k || []).map(parseFloat);
+      const m = (s.m || []).map(parseFloat);
+      
+      const curves = k.map((ki: number, ci: number) => {
+        const pts: string[] = [];
+        const sPts: string[] = [];
+        for (let i = 0; i <= 20; i++) {
+          const x = i / 20;
+          const resVal = m[ci] * (1 - Math.exp(-x / ki));
+          const px = (x * 200).toFixed(0);
+          const py = (90 - resVal * 82).toFixed(1);
+          pts.push(px + "," + py);
+          sPts.push(px + "," + (parseFloat(py) / 2.5).toFixed(1));
+        }
+        return { pts: pts.join(" "), sparklinePoints: sPts.join(" "), color: curveColors[ci], opacity: 1 };
+      });
 
-    return { ...s, curves };
-  });
+      return { ...s, curves };
+    });
+  }, [initialSegments]);
+
+  // Viewport-only rendering for high-cardinality
+  const [visibleCount, setVisibleCount] = useState(40);
+  const observerTarget = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      entries => {
+        if (entries[0].isIntersecting && segmentsWithCurves.length > visibleCount) {
+          setVisibleCount(prev => prev + 40);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (observerTarget.current) {
+      observer.observe(observerTarget.current);
+    }
+
+    return () => observer.disconnect();
+  }, [segmentsWithCurves.length, visibleCount]);
+
+  const visibleSegments = useMemo(() => {
+    return viewMode === "list" ? segmentsWithCurves.slice(0, visibleCount) : segmentsWithCurves;
+  }, [segmentsWithCurves, viewMode, visibleCount]);
 
   return (
     <div style={{ maxWidth: "var(--max-width)", margin: "0 auto", padding: "var(--gutter)" }}>
@@ -213,42 +285,27 @@ export default function PlanningClient({ initialSegments, initialScenarios }: { 
               </tr>
             </thead>
             <tbody>
-              {segmentsWithCurves.map((seg) => (
-                <tr key={seg.id} style={{ borderBottom: "1px solid var(--border-light)" }}>
-                  <td style={{ padding: "16px 20px" }}>
-                    <div style={{ fontWeight: 600, fontSize: "14px" }}>{seg.name}</div>
-                    <div style={{ fontSize: "12px", color: "var(--slate)" }}>{seg.description}</div>
-                  </td>
-                  <td style={{ padding: "16px 20px" }}>
-                    <svg viewBox="0 0 200 40" style={{ width: 120, height: 24, opacity: 0.8 }}>
-                      {seg.curves.map((curve, ci) => (
-                         <polyline key={ci} points={curve.pts.split(' ').map(p => {
-                           const [x, y] = p.split(',');
-                           return `${parseFloat(x)},${parseFloat(y)/2.5}`; // Sparkline scaling
-                         }).join(' ')} stroke={curve.color} fill="none" strokeWidth="2" />
-                      ))}
-                    </svg>
-                  </td>
-                  <td style={{ padding: "16px 20px", textAlign: "right", fontFamily: "monospace", fontWeight: 700 }}>
-                    ${((budgets[seg.id]?.d || 0) + (budgets[seg.id]?.r || 0) + (budgets[seg.id]?.f || 0)).toFixed(1)}M
-                  </td>
-                  <td style={{ padding: "16px 20px", textAlign: "right" }}>
-                    <div style={{ display: "flex", justifyContent: "flex-end", gap: "6px" }}>
-                       {['d', 'r', 'f'].map((type, ci) => (
-                         <input 
-                           key={type}
-                           type="number" step="0.1" min="0"
-                           value={budgets[seg.id]?.[type as 'd'|'r'|'f'] || 0}
-                           onChange={(e) => updateSegmentBudget(seg.id, type as 'd'|'r'|'f', parseFloat(e.target.value))}
-                           style={{ width: "48px", textAlign: "center", fontSize: "12px", padding: "4px", border: "1px solid var(--border-light)", borderRadius: "4px", background: "rgba(15,42,74,0.02)" }}
-                         />
-                       ))}
-                    </div>
-                  </td>
-                </tr>
+              {visibleSegments.map((seg) => (
+                <SegmentRow 
+                  key={seg.id} 
+                  seg={seg} 
+                  budgets={budgets} 
+                  updateSegmentBudget={updateSegmentBudget} 
+                  curveColors={curveColors} 
+                />
               ))}
             </tbody>
           </table>
+          {segmentsWithCurves.length > visibleCount && (
+            <div ref={observerTarget} style={{ padding: "20px", textAlign: "center", borderTop: "1px solid var(--border-light)" }}>
+               <button 
+                onClick={() => setVisibleCount(prev => prev + 40)}
+                className="btn-secondary" style={{ fontSize: "11px", padding: "8px 16px" }}
+               >
+                 Loading more segments...
+               </button>
+            </div>
+          )}
         </div>
       ) : (
         <section style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(290px, 1fr))", gap: 18, marginBottom: 32 }}>
@@ -309,12 +366,14 @@ export default function PlanningClient({ initialSegments, initialScenarios }: { 
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
             <div className="label-caps">Budget scenario</div>
             <div style={{ display: "flex", gap: "8px" }}>
-              <button 
-                onClick={handleSave}
-                style={{ fontSize: "10px", fontWeight: 700, padding: "4px 10px", borderRadius: "4px", border: "1px solid var(--border-light)", cursor: "pointer", background: "white" }}
-              >
-                {saveStatus || "Save"}
-              </button>
+              {isAdmin && (
+                <button 
+                  onClick={handleSave}
+                  style={{ fontSize: "10px", fontWeight: 700, padding: "4px 10px", borderRadius: "4px", border: "1px solid var(--border-light)", cursor: "pointer", background: "white" }}
+                >
+                  {saveStatus || "Save"}
+                </button>
+              )}
               <div style={{ display: "flex", gap: "4px", background: "rgba(15,42,74,0.05)", padding: "3px", borderRadius: "4px" }}>
                 <button onClick={() => setConfigMode("quick")} style={{ fontSize: "10px", fontWeight: 600, padding: "4px 8px", borderRadius: "3px", border: "none", cursor: "pointer", background: configMode === "quick" ? "var(--card)" : "transparent", color: configMode === "quick" ? "var(--blue)" : "var(--slate)" }}>Quick</button>
                 <button onClick={() => setConfigMode("guided")} style={{ fontSize: "10px", fontWeight: 600, padding: "4px 8px", borderRadius: "3px", border: "none", cursor: "pointer", background: configMode === "guided" ? "var(--card)" : "transparent", color: configMode === "guided" ? "var(--blue)" : "var(--slate)" }}>Guided</button>
@@ -350,18 +409,20 @@ export default function PlanningClient({ initialSegments, initialScenarios }: { 
               <div style={{ padding: "24px 20px", background: "rgba(29,91,191,0.03)", borderRadius: "var(--radius-lg)", border: "1px solid var(--border-light)", textAlign: "center" }}>
                 <div className="serif" style={{ fontSize: "18px", color: "var(--ink)", marginBottom: "8px" }}>Dynamic Optimization</div>
                 <p style={{ fontSize: "13px", color: "var(--slate)", lineHeight: 1.5, marginBottom: "20px" }}>
-                  Adjust per-segment budgets directly on the cards above. Use the auto-optimizer to shift capital to the highest-yield response curves.
+                  {isAdmin ? "Adjust per-segment budgets directly on the cards above. Use the auto-optimizer to shift capital." : "View optimized per-segment budgets. Strategic rebalancing is restricted to ADMIN roles."}
                 </p>
-                <button 
-                  onClick={rebalance}
-                  style={{
-                    width: "100%", padding: "12px", borderRadius: "8px", background: "var(--blue)", 
-                    color: "white", border: "none", cursor: "pointer", fontWeight: 600, fontSize: "14px",
-                    boxShadow: "0 2px 4px rgba(29,91,191,0.2)"
-                  }}
-                >
-                  Rebalance for ROI
-                </button>
+                {isAdmin && (
+                  <button 
+                    onClick={rebalance}
+                    style={{
+                      width: "100%", padding: "12px", borderRadius: "8px", background: "var(--blue)", 
+                      color: "white", border: "none", cursor: "pointer", fontWeight: 600, fontSize: "14px",
+                      boxShadow: "0 2px 4px rgba(29,91,191,0.2)"
+                    }}
+                  >
+                    Rebalance for ROI
+                  </button>
+                )}
               </div>
               
               <div style={{ marginTop: "24px", display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px" }}>

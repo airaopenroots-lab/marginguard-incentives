@@ -1,19 +1,23 @@
 import { fetchConfig, fetchDataSources } from "@/lib/actions";
+import { auth } from "@/lib/auth";
 import SettingsClient from "@/components/SettingsClient";
 
 export default async function SettingsPage() {
+  let session;
+  try {
+    session = await auth();
+  } catch (e) {
+    console.error("Auth failed:", e);
+  }
+  const role = (session?.user as any)?.role || "OPERATOR";
+  
   const config = await fetchConfig();
-  const dataSources = await fetchDataSources();
+  let dataSources: any[] = [];
+  try {
+    dataSources = await fetchDataSources();
+  } catch (e) {
+    console.error("Settings fetch failed:", e);
+  }
 
-  return (
-    <SettingsClient 
-      initialConfig={config} 
-      initialDataSources={dataSources.map(d => ({
-        id: d.id,
-        name: d.name,
-        status: d.status,
-        lastSync: d.lastSync?.toLocaleString() || "Never"
-      }))} 
-    />
-  );
+  return <SettingsClient initialConfig={config} initialDataSources={dataSources} userRole={role} />;
 }

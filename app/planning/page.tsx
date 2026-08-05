@@ -1,21 +1,26 @@
 import { fetchSegments, fetchScenarios } from "@/lib/actions";
+import { auth } from "@/lib/auth";
 import PlanningClient from "@/components/PlanningClient";
 
 export default async function PlanningPage() {
-  const segments = await fetchSegments();
-  const scenarios = await fetchScenarios();
+  let session;
+  try {
+    session = await auth();
+  } catch (e) {
+    console.error("Auth failed:", e);
+  }
+  const role = (session?.user as any)?.role || "OPERATOR";
+  
+  let segments: any[] = [];
+  let scenarios: any[] = [];
+  try {
+    [segments, scenarios] = await Promise.all([
+      fetchSegments(),
+      fetchScenarios()
+    ]);
+  } catch (e) {
+    console.error("Planning fetch failed:", e);
+  }
 
-  return (
-    <PlanningClient 
-      initialSegments={segments as any} 
-      initialScenarios={scenarios.map(s => ({
-        id: s.id,
-        name: s.name,
-        config: JSON.parse(s.config || "{}"),
-        totalSpend: parseFloat(s.totalSpend || "0"),
-        projectedDelta: s.projectedDelta || 0,
-        createdAt: s.createdAt
-      }))} 
-    />
-  );
+  return <PlanningClient initialSegments={segments} initialScenarios={scenarios} userRole={role} />;
 }

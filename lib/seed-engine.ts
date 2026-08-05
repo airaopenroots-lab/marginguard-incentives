@@ -207,9 +207,11 @@ export function generateDeals(seed: number): Deal[] {
 }
 
 // ── Response curve helper ──────────────────────────────
-function resp(k: number, m: number, x: number): number {
+export function resp(k: number, m: number, x: number): number {
   return m * (1 - Math.exp(-x / k));
 }
+
+const baselineCache = new Map<string, number>();
 
 function curve(k: number, m: number, color: string, opacity: number): ResponseCurve {
   const pts: string[] = [];
@@ -304,6 +306,25 @@ export function computeProjection(segmentBudgets: SegmentBudget[]) {
     totalF += b.f;
     totalSpend += (b.d + b.r + b.f);
 
+    const cacheKey = `${b.baseUnits}-${b.k.join(',')}-${b.m.join(',')}`;
+    let baseline = baselineCache.get(cacheKey);
+    
+    if (baseline === undefined) {
+      // Baseline: fixed mix of $6.0M discount, $4.5M rebate, $1.5M financing distributed across 4 segments
+      const bD = 6.0 / 4;
+      const bR = 4.5 / 4;
+      const bF = 1.5 / 4;
+
+      baseline = Math.round(
+        b.baseUnits * (
+          resp(b.k[0], b.m[0], bD) +
+          resp(b.k[1], b.m[1], bR) +
+          resp(b.k[2], b.m[2], bF)
+        )
+      );
+      baselineCache.set(cacheKey, baseline);
+    }
+
     const units = Math.round(
       b.baseUnits * (
         resp(b.k[0], b.m[0], b.d) +
@@ -312,19 +333,6 @@ export function computeProjection(segmentBudgets: SegmentBudget[]) {
       )
     );
     totalUnits += units;
-
-    // Baseline: fixed mix of $6.0M discount, $4.5M rebate, $1.5M financing distributed across 4 segments
-    const bD = 6.0 / 4;
-    const bR = 4.5 / 4;
-    const bF = 1.5 / 4;
-
-    const baseline = Math.round(
-      b.baseUnits * (
-        resp(b.k[0], b.m[0], bD) +
-        resp(b.k[1], b.m[1], bR) +
-        resp(b.k[2], b.m[2], bF)
-      )
-    );
     totalBaseline += baseline;
   });
 

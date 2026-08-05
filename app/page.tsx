@@ -2,7 +2,12 @@ import Link from "next/link";
 import { getDeals } from "@/lib/db/repo";
 
 export default async function Home() {
-  const deals = await getDeals();
+  let deals: any[] = [];
+  try {
+    deals = await getDeals();
+  } catch (e) {
+    console.error("Home deals fetch failed:", e);
+  }
   const dealCount = deals.length;
 
   return (
@@ -304,7 +309,7 @@ export default async function Home() {
           className="slate"
           style={{ fontSize: 12, letterSpacing: "0.04em" }}
         >
-          Marginguard Incentives OS · Sprint 3: Strategic Expansion · Live Reallocation Engine
+          Marginguard Incentives OS · Sprint 1: Persistence &amp; Vector · Live Database
         </p>
       </footer>
     </div>

@@ -19,9 +19,12 @@ interface SettingsClientProps {
   }[];
 }
 
-export default function SettingsClient({ initialConfig, initialDataSources }: SettingsClientProps) {
+export default function SettingsClient({ initialConfig, initialDataSources, userRole }: SettingsClientProps & { userRole?: string }) {
   const [loading, setLoading] = useState(false);
   const [config, setConfig] = useState(initialConfig);
+  const [dataSources, setDataSources] = useState(initialDataSources);
+
+  const isAdmin = userRole === "ADMIN";
 
   const handleReset = async () => {
     if (!confirm("Are you sure? This will wipe all data and re-seed the database.")) return;
@@ -50,7 +53,10 @@ export default function SettingsClient({ initialConfig, initialDataSources }: Se
     const name = window.prompt("Enter data source name:");
     if (!name) return;
     setLoading(true);
-    await addDataSourceAction(name);
+    const result = await addDataSourceAction(name);
+    if (result.success && result.source) {
+      setDataSources(prev => [result.source, ...prev]);
+    }
     setLoading(false);
   };
 
@@ -66,8 +72,9 @@ export default function SettingsClient({ initialConfig, initialDataSources }: Se
           <span className="label-caps" style={{ fontSize: "11px", letterSpacing: ".22em" }}>Truck OEM · Settings</span>
         </div>
         <nav style={{ display: "flex", gap: "6px" }}>
-          <Link href="/deal-approval" className="tab-inactive" style={{ textDecoration: "none" }}>01 · Next Best Incentive</Link>
-          <Link href="/planning" className="tab-inactive" style={{ textDecoration: "none" }}>02 · Incentive Mix by Segment</Link>
+          <Link href="/deal-approval" className="tab-inactive" style={{ textDecoration: "none" }}>01 · Deal Approval</Link>
+          <Link href="/planning" className="tab-inactive" style={{ textDecoration: "none" }}>02 · Strategy Builder</Link>
+          <Link href="/settings" className="tab-active" style={{ textDecoration: "none" }}>03 · Operational Setup</Link>
         </nav>
       </header>
 
@@ -79,7 +86,7 @@ export default function SettingsClient({ initialConfig, initialDataSources }: Se
         
         {/* Operator Support */}
         <div className="card-default">
-          <div className="label-caps" style={{ marginBottom: "16px" }}>Operator Support & Training</div>
+          <div className="label-caps serif" style={{ marginBottom: "16px", color: "var(--blue)" }}>Operator Support &amp; Training</div>
           <div style={{ display: "flex", gap: "12px", marginBottom: "16px" }}>
             <button 
               className="btn-primary" 
@@ -113,7 +120,7 @@ export default function SettingsClient({ initialConfig, initialDataSources }: Se
 
         {/* AI Model Parameters */}
         <div className="card-default">
-          <div className="label-caps" style={{ marginBottom: "16px" }}>AI model parameters</div>
+          <div className="label-caps serif" style={{ marginBottom: "16px", color: "var(--blue)" }}>AI model parameters</div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
             {[
               { key: "confidence_threshold", label: "Confidence threshold", suffix: "%", desc: "Min confidence to auto-recommend" },
@@ -145,18 +152,27 @@ export default function SettingsClient({ initialConfig, initialDataSources }: Se
 
         {/* Data Sources */}
         <div className="card-default">
-          <div className="label-caps" style={{ marginBottom: "16px" }}>Connected data sources</div>
+          <div className="label-caps serif" style={{ marginBottom: "16px", color: "var(--blue)" }}>Connected data sources</div>
           <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-            {initialDataSources.length === 0 ? (
+            {dataSources.length === 0 ? (
                 <div style={{ padding: "20px", textAlign: "center", border: "1px dashed var(--border-light)", borderRadius: "8px", fontSize: "13px", color: "var(--slate)" }}>
                     No custom data sources registered.
                 </div>
-            ) : initialDataSources.map(s => (
-              <div key={s.id} style={{ display: "flex", justifyContent: "space-between", padding: "12px 0", borderBottom: "1px solid var(--border-light)" }}>
-                <span style={{ fontWeight: 500, fontSize: "13.5px" }}>{s.name}</span>
-                <span style={{ fontSize: "12.5px", color: "var(--slate)" }}>
-                  <span style={{ color: "#0e7a5f", marginRight: "6px" }}>●</span>{s.status} · last sync {s.lastSync}
-                </span>
+            ) : dataSources.map(s => (
+              <div key={s.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 0", borderBottom: "1px solid var(--border-light)" }}>
+                <div>
+                  <span style={{ fontWeight: 500, fontSize: "13.5px" }}>{s.name}</span>
+                  <div style={{ fontSize: "12.5px", color: "var(--slate)", marginTop: "2px" }}>
+                    <span style={{ color: "#0e7a5f", marginRight: "6px" }}>●</span>{s.status} · last sync {s.lastSync}
+                  </div>
+                </div>
+                <Link 
+                  href={`/settings/mapping/${s.id}`}
+                  className="btn-secondary" 
+                  style={{ fontSize: "10px", padding: "6px 12px", textDecoration: "none" }}
+                >
+                  Configure Mapping
+                </Link>
               </div>
             ))}
           </div>
@@ -164,41 +180,43 @@ export default function SettingsClient({ initialConfig, initialDataSources }: Se
         </div>
 
         {/* Maintenance */}
-        <div className="card-default">
-          <div className="label-caps" style={{ marginBottom: "16px" }}>Database Maintenance</div>
-          <div style={{ display: "flex", gap: "12px" }}>
-            <button 
-              className="btn-secondary" 
-              onClick={handleReset} 
-              disabled={loading}
-              style={{ fontSize: "11px", padding: "10px 18px" }}
-            >
-              {loading ? "Processing..." : "Reseed Database"}
-            </button>
-            <button 
-              className="btn-secondary" 
-              onClick={handleClear} 
-              disabled={loading}
-              style={{ fontSize: "11px", padding: "10px 18px", color: "var(--amber)", borderColor: "var(--amber)" }}
-            >
-              {loading ? "Processing..." : "Clear Decisions"}
-            </button>
+        {isAdmin && (
+          <div className="card-default">
+            <div className="label-caps serif" style={{ marginBottom: "16px", color: "var(--amber)" }}>Database Maintenance</div>
+            <div style={{ display: "flex", gap: "12px" }}>
+              <button 
+                className="btn-secondary" 
+                onClick={handleReset} 
+                disabled={loading}
+                style={{ fontSize: "11px", padding: "10px 18px" }}
+              >
+                {loading ? "Processing..." : "Reseed Database"}
+              </button>
+              <button 
+                className="btn-secondary" 
+                onClick={handleClear} 
+                disabled={loading}
+                style={{ fontSize: "11px", padding: "10px 18px", color: "var(--amber)", borderColor: "var(--amber)" }}
+              >
+                {loading ? "Processing..." : "Clear Decisions"}
+              </button>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Architecture */}
         <div className="card-default">
-          <div className="label-caps" style={{ marginBottom: "16px" }}>Architecture</div>
+          <div className="label-caps" style={{ marginBottom: "16px" }}>Architecture & Systems</div>
           <div style={{ fontSize: "13.5px", lineHeight: 1.9, color: "var(--ink)" }}>
-            <strong>Stack:</strong> Next.js 15, TypeScript, seeded data engine (mulberry32 PRNG)<br />
+            <strong>Stack:</strong> Next.js 16 (App Router), TypeScript, Tailwind v4<br />
             <strong>Database:</strong> PostgreSQL 16 + pgvector (Sprint 2)<br />
-            <strong>Persistence:</strong> Scenarios, Dynamic Config, Data Source Registry (Sprint 3 Expansion)<br />
-            <strong>Deploy:</strong> Docker Compose · Tailscale-ready
+            <strong>Persistence:</strong> Drizzle ORM (Sprint 1), Scenario Registry (Sprint 3)<br />
+            <strong>Auth:</strong> Auth.js v5 (Credentials + RBAC) (Sprint 4)
           </div>
         </div>
 
         <p style={{ textAlign: "center", fontSize: "12px", color: "var(--slate)", paddingTop: "16px" }}>
-          Incentive Intelligence · Sprint 3 · Strategic Expansion
+          Marginguard · Sprint 4 COMPLETE · Production Ready
         </p>
       </div>
     </div>

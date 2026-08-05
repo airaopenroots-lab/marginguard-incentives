@@ -8,6 +8,7 @@ import {
   varchar,
   pgEnum,
   vector,
+  jsonb,
 } from "drizzle-orm/pg-core";
 
 export const verdictEnum = pgEnum("verdict", ["APPROVE", "COUNTER", "ALTERNATIVE"]);
@@ -102,6 +103,7 @@ export const scenarios = pgTable("scenarios", {
   config: text("config"), // JSON string of segment budgets
   totalSpend: decimal("total_spend", { precision: 10, scale: 2 }),
   projectedDelta: integer("projected_delta"),
+  snapshotId: varchar("snapshot_id", { length: 64 }), // current model version
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -117,4 +119,5 @@ export const dataSources = pgTable("data_sources", {
   name: text("name").notNull(),
   status: text("status").notNull().default("Connected"),
   lastSync: timestamp("last_sync").defaultNow(),
+  mapping: jsonb("mapping").default({}),
 });

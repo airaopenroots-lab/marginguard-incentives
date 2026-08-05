@@ -28,6 +28,9 @@ services:
     environment:
       DATABASE_URL: postgresql://marginguard:marginguard_dev@postgres:5432/marginguard_incentives
       NODE_ENV: development
+      AUTH_URL: http://localhost:3000
+      NEXTAUTH_URL: http://localhost:3000
+      AUTH_SECRET: ApR0CY+KUia6o/XX/gTrIqUj2qLgBRTc0rpBx5Fef9E=
     depends_on:
       postgres:
         condition: service_healthy

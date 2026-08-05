@@ -1,17 +1,25 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import OnboardingTour from "@/components/OnboardingTour";
+import { AppShell } from "@/components/AppShell";
+import { auth } from "@/lib/auth";
 
 export const metadata: Metadata = {
   title: "Incentive Intelligence · Truck OEM",
   description: "Next Best Incentive · Incentive Mix by Segment",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  let session;
+  try {
+    session = await auth();
+  } catch (e) {
+    console.error("Auth failed:", e);
+  }
+
   return (
     <html lang="en" className="antialiased">
       <head>
@@ -23,15 +31,7 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-screen">
-        {/* Ambient background orbs */}
-        <div className="ambient-orb ambient-orb-top" />
-        <div className="ambient-orb ambient-orb-bottom" />
-
-        {/* Page surface */}
-        <div style={{ position: "relative", minHeight: "100vh", overflow: "hidden" }}>
-          {children}
-        </div>
-        <OnboardingTour />
+        <AppShell session={session}>{children}</AppShell>
       </body>
     </html>
   );
