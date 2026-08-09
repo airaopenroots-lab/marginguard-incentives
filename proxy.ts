@@ -6,7 +6,9 @@ import { join } from "path";
 
 // Simple in-memory rate limiter for the prototype
 const rateLimitMap = new Map<string, { count: number; lastReset: number }>();
-const BASE_PATH = ""; // no basePath
+// Nginx publishes this Next.js app beneath /marginguard in production.
+// Keep local development root-mounted while normalizing routing decisions.
+const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH || "/marginguard";
 
 // Cache the landing page HTML at startup
 let landingPageCache: string | null = null;
@@ -21,16 +23,20 @@ export default async function middleware(req: NextRequest) {
   const ip = req.headers.get("x-forwarded-for") || "127.0.0.1";
   const now = Date.now();
   const { pathname } = req.nextUrl;
+  const routePath =
+    BASE_PATH && pathname.startsWith(`${BASE_PATH}/`)
+      ? pathname.slice(BASE_PATH.length)
+      : pathname;
 
   // CRITICAL: pass through all auth API routes and static assets immediately — do NOT call auth()
-  console.log(`[proxy] ${req.method} ${pathname} (basePath=${BASE_PATH})`);
-  
-  if (pathname.startsWith("/api/auth") || pathname.startsWith("/api/mobile") || pathname.startsWith("/_next")) {
+  console.log(`[proxy] ${req.method} ${pathname} → ${routePath} (basePath=${BASE_PATH})`);
+
+  if (routePath.startsWith("/api/auth") || routePath.startsWith("/api/mobile") || routePath.startsWith("/_next")) {
     return NextResponse.next();
   }
 
   // Rate limiting for API routes (non-auth) and Server Actions
-  if (pathname.startsWith("/api") || req.headers.get("next-action")) {
+  if (routePath.startsWith("/api") || req.headers.get("next-action")) {
     const windowMs = 60000;
     const limit = 60;
     const rateData = rateLimitMap.get(ip) || { count: 0, lastReset: now };
