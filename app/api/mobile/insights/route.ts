@@ -11,12 +11,15 @@ export async function GET(request: Request) {
   const [allDeals, stats] = await Promise.all([getDeals(), getStats()]);
   const activeDeals = allDeals.filter((deal) => deal.status === "PENDING");
   const approved = allDeals.filter((deal) => deal.status === "APPROVED");
-  const atStake = activeDeals.reduce((sum, deal) => sum + Number.parseFloat(deal.requestedValue || "0"), 0);
+  // requestedValue is currently a display string (for example, "6.9% discount"),
+  // not a currency amount. Never expose NaN as a KPI; report zero until a
+  // monetary exposure field is added to the data model.
+  const dollarsAtStake = 0;
 
   return Response.json({
     activeDeals: activeDeals.length,
     approveRate: allDeals.length ? Math.round((approved.length / allDeals.length) * 100) : 0,
-    dollarsAtStake: Math.round(atStake * 100) / 100,
+    dollarsAtStake,
     decisions: stats.total,
     accepted: stats.accepted,
     winRate: stats.winRate,
