@@ -25,7 +25,7 @@ export default async function middleware(req: NextRequest) {
   // CRITICAL: pass through all auth API routes and static assets immediately — do NOT call auth()
   console.log(`[proxy] ${req.method} ${pathname} (basePath=${BASE_PATH})`);
   
-  if (pathname.startsWith("/api/auth") || pathname.startsWith("/_next")) {
+  if (pathname.startsWith("/api/auth") || pathname.startsWith("/api/mobile/auth/token") || pathname.startsWith("/_next")) {
     return NextResponse.next();
   }
 

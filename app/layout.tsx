@@ -13,7 +13,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  let session;
+  let session: any = null;
   try {
     session = await auth();
   } catch (e) {
